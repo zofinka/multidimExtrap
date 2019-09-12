@@ -1,1 +1,2 @@
-# multidimExtrap
+# multidimensional extrapolation
+Учебный проект.
