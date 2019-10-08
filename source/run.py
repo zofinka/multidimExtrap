@@ -4,7 +4,7 @@ import subprocess
 
 import argparse
 
-from test_data.Funcs import SUM, calc_new_points
+from test_util.Funcs import SUM, calc_new_points
 
 
 if __name__ == "__main__":
