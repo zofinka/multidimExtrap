@@ -41,21 +41,23 @@ namespace Solver
             };*/
             Shepard model = new Shepard(parser.FunctionDimension, parser.Points);
             
-            double[] x = new double[] { 0.5, 0.5, 0 };
-            model.Calculate(x);
-            Console.WriteLine("f({0}, {1}) = {2}", x[0], x[1], x[2]);
+            //double[] x = new double[] { 0.5, 0.5, 0 };
+            //model.Calculate(x);
+            //Console.WriteLine("f({0}, {1}) = {2}", x[0], x[1], x[2]);
 
-            Analyzer analyzer = new Analyzer(model, parser.Points, new int[] { 10, 10 });
+            Analyzer analyzer = new Analyzer(model, parser.Points);
 
-            double[][] xx = analyzer.Result; 
+            double[][] xx = analyzer.Result;
+            double[][] new_points = new double[parser.PredictionPointAmount][];
             for (int i = 0; i < parser.PredictionPointAmount; i++)
             {
-                model.Calculate(xx[i]);
-                Console.WriteLine("f({0}, {1}) = {2}\terror = {3}", 
-                    xx[i][0], xx[i][1], xx[i][2], 
-                    Math.Abs(xx[i][0] + xx[i][1] - xx[i][2]));
+                new_points[i] = new double[xx[i].Length];
+                Array.Copy(xx[i], new_points[i], xx[i].Length);
+                model.Calculate(new_points[i]);
+                // Console.WriteLine(String.Join(", ", xx[i]));
             }
-            Parser.keepSolution(args[2], xx);
+
+            Parser.keepSolution(args[2], new_points);
 
             //Console.ReadKey();
         }
