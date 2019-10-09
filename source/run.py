@@ -44,5 +44,12 @@ if __name__ == "__main__":
             break
 
         next_input_points = os.path.join(test_data_dir, "points_" + str(i + 1) + ".txt")
-        calc_new_points(input_points, output_points, next_input_points, args.config, args.funcType)
+        old_points, new_points = calc_new_points(input_points, output_points, next_input_points, args.config, args.funcType)
+
+        for i in range(len(new_points)):
+            print("f({}) = {} prediction result = {} error = {}".format(
+                ", ".join(map(str, new_points[i][0:-1])),
+                new_points[i][-1],
+                old_points[i][-1],
+                abs(new_points[i][-1] - old_points[i][-1])))
 

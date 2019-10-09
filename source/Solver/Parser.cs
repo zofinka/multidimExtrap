@@ -185,7 +185,7 @@ namespace Solver
                 
                 for (int i = 0; i < points.Length; i++)
                 {
-                    points[i][points[i].Length - 1] = 0;
+                    // points[i][points[i].Length - 1] = 0;
                     fs.WriteLine(String.Join(" ", points[i]));
                 }
             }
