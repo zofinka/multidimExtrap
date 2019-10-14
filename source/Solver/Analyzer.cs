@@ -142,6 +142,45 @@ namespace Solver
             }
             candidates = queue.ToArray();
 
+
+//--------------------------TO REMOVE AFTER PROPER CLASSIFIER USAGE-------------------------
+//--------------------------------------Too silly example-----------------------------------
+
+            // Classification is binary.. Shall we use more simplest binary classifier?
+            Classifiers.LabeledData[] ldata = new Classifiers.LabeledData[3];
+            ldata[0] = new Classifiers.LabeledData(new double[3] { grid.Node[0][0], borderdist[0], bordernear[0] }, 1);
+            ldata[1] = new Classifiers.LabeledData(new double[3] { grid.Node[1][0], borderdist[1], bordernear[1] }, 1);
+            ldata[2] = new Classifiers.LabeledData(new double[3] { grid.Node[2][0], borderdist[2], bordernear[2] }, 0);
+
+            Classifiers.IClassifier cls = new Classifiers.RandomForest();
+            Classifiers.RandomForestParams ps = new Classifiers.RandomForestParams(ldata, 3   /* samples count */,
+                                                                                          3   /* features count */,
+                                                                                          2   /* classes count */,
+                                                                                          3   /* trees count */,
+                                                                                          2   /* count of features to do split in a tree */,
+                                                                                          0.7 /* percent of a training set of samples  */
+                                                                                              /* used to build individual trees. */);
+
+            cls.train(ps);
+            int[] y = new int[3];
+            cls.infer(ldata[0].data, out y[0]);
+            cls.infer(ldata[1].data, out y[1]);
+            cls.infer(ldata[2].data, out y[2]);
+
+            for (int i = 0; i < 3; i++)
+            {
+                Console.WriteLine("{0} is predicted y[{1}] from trained data sample and {2} is ground truth", y[i], i, ldata[i].label);
+            }
+
+            double trainModelPrecision;
+            cls.validate(ldata, out trainModelPrecision);
+
+            Console.WriteLine("Model precision on training dataset: " + trainModelPrecision);
+      
+            //------------------------------------------------------------------------------------------
+            //--------------------------TO REMOVE AFTER PROPER CLASSIFIER USAGE-------------------------
+
+
             Console.WriteLine("Построение функции расстояний до границ доменов");
             //вычисляю расстояния от границ
             while (queue.Count > 0)

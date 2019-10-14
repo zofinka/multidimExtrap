@@ -58,6 +58,10 @@
     <Compile Include="alglib\specialfunctions.cs" />
     <Compile Include="alglib\statistics.cs" />
     <Compile Include="Analyzer.cs" />
+    <Compile Include="classifiers\DecisionTree.cs" />
+    <Compile Include="classifiers\IClassifier.cs" />
+    <Compile Include="classifiers\LogReg.cs" />
+    <Compile Include="classifiers\RandomForest.cs" />
     <Compile Include="Function.cs" />
     <Compile Include="Grid.cs" />
     <Compile Include="Parser.cs" />
