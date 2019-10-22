@@ -66,6 +66,7 @@ namespace Solver
             fileWithPoints = "";
             Min = new double[0];
             Max = new double[0];
+            doParse();
         }
 
         public Parser(string configFile, string fileWithPoint)
@@ -79,6 +80,7 @@ namespace Solver
             Points = new double[0][];
             Min = new double[0];
             Max = new double[0];
+            doParse();
         }
 
         public void setConfigFile(string configFile)

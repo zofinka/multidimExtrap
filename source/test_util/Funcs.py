@@ -2,6 +2,7 @@ import shutil
 
 
 SUM = 'SUM'
+SQUARE_AREA = 'SQUARE_AREA'
 
 
 def calc_new_points(point_file, output_file, next_input_file, config, func_type):
@@ -13,6 +14,8 @@ def calc_new_points(point_file, output_file, next_input_file, config, func_type)
     new_points = []
     if func_type == SUM:
         new_points = calc_sum(points)
+    elif func_type == SQUARE_AREA:
+        new_points = square_area(points)
 
     shutil.copy2(point_file, next_input_file)
 
@@ -30,6 +33,18 @@ def calc_sum(points):
         res = 0
         for x in point[0:-1]:
             res += x
+        new_point = point.copy()
+        new_point[-1] = res
+        new_points.append(new_point)
+    return new_points
+
+
+def square_area(points):
+    new_points = []
+    for point in points:
+        res = 1
+        for x in point[0:-1]:
+            res *= x
         new_point = point.copy()
         new_point[-1] = res
         new_points.append(new_point)
