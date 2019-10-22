@@ -4,7 +4,7 @@ import subprocess
 
 import argparse
 
-from test_util.Funcs import SUM, calc_new_points
+from test_util.Funcs import calc_new_points, SUM, SQUARE_AREA 
 
 
 if __name__ == "__main__":
@@ -12,7 +12,7 @@ if __name__ == "__main__":
     parser.add_argument('--config', type=str, required=True)
     parser.add_argument('--points', type=str, required=True)
     parser.add_argument('--runNum', type=int, default=10)
-    parser.add_argument('--funcType', choices=[SUM], default=SUM)
+    parser.add_argument('--funcType', choices=[SUM, SQUARE_AREA], default=SUM)
 
     args = parser.parse_args()
 
