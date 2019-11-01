@@ -10,8 +10,8 @@ namespace Solver
     {
         class SinXCosXCosY
         {
-            public static string configFile = @"C:\Users\Sofya\multidimExtrap\source\test_data\17.sinXcosYcosX\config.cfg";
-            public static string pointFile = @"C: \Users\Sofya\multidimExtrap\source\test_data\17.sinXcosYcosX\points.txt";
+            public static string configFile = @"C:\Users\apronina\Syncplicity\Study\multidimExtrap\source\test_data\17.sinXcosYcosX\config.cfg";
+            public static string pointFile = @"C: \Users\apronina\Syncplicity\Study\multidimExtrap\source\test_data\17.sinXcosYcosX\points.txt";
             public static string name = "SinXCosXCosY ";
 
             // sin(x1)* cos(x1) * cos(x2)

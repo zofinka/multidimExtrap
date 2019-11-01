@@ -121,7 +121,7 @@ namespace Solver
                 FunctionDimension = Int32.Parse(fs.ReadLine());
                 PointAmount = Int32.Parse(fs.ReadLine());
                 PredictionPointAmount = Int32.Parse(fs.ReadLine());
-                Approximation = float.Parse(fs.ReadLine());
+                Approximation = float.Parse(fs.ReadLine().Replace('.', ','));
                 string temp = fs.ReadLine();
                 string[] strItems = temp.Split(' ');
                 Min = new double[FunctionDimension];
@@ -132,7 +132,7 @@ namespace Solver
                 {
                     for (int j = 0; j < FunctionDimension; j++)
                     {
-                        Min[j] = double.Parse(strItems[j]);
+                        Min[j] = double.Parse(strItems[j].Replace('.', ','));
                     }
                 }
 
@@ -147,7 +147,7 @@ namespace Solver
                 {
                     for (int j = 0; j < FunctionDimension; j++)
                     {
-                        Max[j] = double.Parse(strItems[j]);
+                        Max[j] = double.Parse(strItems[j].Replace('.', ','));
                     }
                 }
             }
@@ -173,7 +173,7 @@ namespace Solver
                     }
                     for (int j = 0; j < FunctionDimension + 1; j++)
                     {
-                        Points[i][j] = double.Parse(strItems[j]);
+                        Points[i][j] = double.Parse(strItems[j].Replace('.', ','));
                     }
                 }
             }

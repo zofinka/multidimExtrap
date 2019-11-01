@@ -10,9 +10,22 @@ namespace Solver
     {
         static void Main(string[] args)
         {
+            Console.OutputEncoding = Encoding.UTF8;
+
+#if ApproxTest
+#region Test RandomForest in Approximation algorithm
             Test t = new Test();
             //t.runDefWayTests();
             t.runRandomForestTestsLearnOnAll();
+#endregion
+#endif
+
+#region Test RandomForest classifier
+            ClassifierTest clsTest = new ClassifierTest();
+            //t.runDefWayTests();
+            clsTest.runOnDAALDataset();
+#endregion
+
             //t.runRandomForestTestsLearnOnAll();
             //if (args.Length != 3)
             //{
@@ -25,26 +38,26 @@ namespace Solver
             //Parser parser = new Parser(args[0], args[1]);
             //int res = parser.doParse();
             //if (res != 0)
-           // {
-                // Console.ReadKey();
+            // {
+            // Console.ReadKey();
             //    return;
-           // }
-            
+            // }
 
-             /*double[][] xf = new double[][] 
-            {
-                new double[] { 0, 0, 0 },
-                new double[] { 0, 1, 1 },
-                new double[] { 0, 2, 2 },
-                new double[] { 1, 0, 1 },
-                new double[] { 1, 1, 2 },
-                new double[] { 1, 2, 3 },
-                new double[] { 2, 0, 2 },
-                new double[] { 2, 1, 2 },
-                new double[] { 2, 2, 4 }
-            };*/
+
+            /*double[][] xf = new double[][] 
+           {
+               new double[] { 0, 0, 0 },
+               new double[] { 0, 1, 1 },
+               new double[] { 0, 2, 2 },
+               new double[] { 1, 0, 1 },
+               new double[] { 1, 1, 2 },
+               new double[] { 1, 2, 3 },
+               new double[] { 2, 0, 2 },
+               new double[] { 2, 1, 2 },
+               new double[] { 2, 2, 4 }
+           };*/
             //Shepard model = new Shepard(parser.FunctionDimension, parser.Points);
-            
+
             //double[] x = new double[] { 0.5, 0.5, 0 };
             //model.Calculate(x);
             //Console.WriteLine("f({0}, {1}) = {2}", x[0], x[1], x[2]);

@@ -67,7 +67,7 @@ namespace Solver
 
             Console.WriteLine(Tests.SinXCosXCosY.name +  " Test START");
             interAmount = testWithRandomForest(Tests.SinXCosXCosY.configFile, Tests.SinXCosXCosY.pointFile, Tests.SinXCosXCosY.func, Tests.SinXCosXCosY.derivative);
-            Console.WriteLine("17.sinXconYxonX Test END in " + interAmount + " iterations");
+            Console.WriteLine("17.sinXcosXcosY Test END in " + interAmount + " iterations");
 
             /*Console.WriteLine(Tests.SinFromSumOnSum.name + " Test START");
             interAmount = testWithRandomForest(Tests.SinFromSumOnSum.configFile, Tests.SinFromSumOnSum.pointFile, Tests.SinFromSumOnSum.func, Tests.SinFromSumOnSum.derivative);
@@ -131,22 +131,18 @@ namespace Solver
 
                 double[][] xx = analyzer.Result;
                 int newPointsAmount = Math.Min(parser.PredictionPointAmount, xx.Length);
-                pointAmount = pointAmount + newPointsAmount;
-                double[][] newPoints = new double[pointAmount][];
-                for (int j = 0; j < pointAmount; j++)
-                {
-                    if (j < pointAmount - newPointsAmount)
-                    {
-                        newPoints[j] = (double[])points[j].Clone();
-                    }
-                    else
-                    {
-                        newPoints[j] = (double[])xx[j - pointAmount + newPointsAmount].Clone();
-                        newPoints[j][parser.FunctionDimension] = func(newPoints[j]);
-                    }
-                }
-                points = newPoints;
+                pointAmount += newPointsAmount;
 
+                List<double[]> newPointsList = points.ToList<double[]>();
+
+                for (int j = 0; j < newPointsAmount; j++)
+                {
+                    var newPoint = (double[])xx[j].Clone();
+                    newPoint[parser.FunctionDimension] = func(newPoint);
+                    newPointsList.Add(newPoint);                   
+                }
+
+                points = newPointsList.ToArray<double[]>();
 
                 double[][] new_points = new double[newPointsAmount][];
                 for (int j = 0; j < newPointsAmount; j++)
@@ -159,13 +155,15 @@ namespace Solver
                 double tempErr = 0;
                 for (int k = 0; k < new_points.Length; k++)
                 {
-                    double err = Math.Abs(points[pointAmount - newPointsAmount + k][parser.FunctionDimension] - new_points[k][parser.FunctionDimension]);
-                    Console.WriteLine(" \n " + (points[pointAmount - newPointsAmount + k][parser.FunctionDimension] - new_points[k][parser.FunctionDimension]) + " " + points[pointAmount - newPointsAmount + k][parser.FunctionDimension] + " " + new_points[k][parser.FunctionDimension] + " \n ");
+                    var gtPoint = points[pointAmount - newPointsAmount + k][parser.FunctionDimension];
+                    var approxPoint = new_points[k][parser.FunctionDimension];
+                    var err = Math.Abs(gtPoint - approxPoint);
+                    Console.WriteLine(" \n " + err + " " + gtPoint + " " + approxPoint + " \n ");
                     if (err > tempErr)
                     {
                         tempErr = err;
                     }
-                    Console.WriteLine("f({0}) real val {1} predict val {2} err {3}", String.Join(", ", xx[k]), points[pointAmount - newPointsAmount + k][parser.FunctionDimension], new_points[k][parser.FunctionDimension], err);
+                    Console.WriteLine("f({0}) real val {1} predict val {2} err {3}", String.Join(", ", xx[k]), gtPoint, approxPoint, err);
                 }
                 maxErr = tempErr;
                 i++;
@@ -333,6 +331,66 @@ namespace Solver
                 model.Calculate(a);
                 Console.WriteLine("Vector " + String.Join(", ", b) + " Approximation result " + a[functionDimension] + " real " + func(b) + " error " + Math.Abs(a[functionDimension] - func(b)));
             }
+        }
+    }
+
+    class ClassifierTest
+    {
+        public double runOnDAALDataset()
+        {
+            Func<string, int, Classifiers.LabeledData[]> parseDataSet = delegate (string path, int count)
+            {
+                Classifiers.LabeledData[] data = new Classifiers.LabeledData[count];
+
+                using (StreamReader fs = new StreamReader(path))
+                {
+                    for (var i = 0; i < count; ++i)
+                    {
+                        string[] vals = fs.ReadLine().Split(',');
+                        double[] features = { Double.Parse(vals[0]), Double.Parse(vals[1]), Double.Parse(vals[2]) };
+                        int label = Int32.Parse(vals[3]);
+
+                        data[i] = new Classifiers.LabeledData(features, label);
+                    }
+                }
+
+                return data;
+            };
+
+            var trainDataCount = 100000;
+            var trainDataSet = parseDataSet("..//..//..//test_classifier//df_classification_train.csv", trainDataCount);
+
+            Classifiers.IClassifier cls = new Classifiers.RandomForest();
+
+            Classifiers.RandomForestParams ps = new Classifiers.RandomForestParams(trainDataSet,
+                                                                                   trainDataCount /* samples count */,
+                                                                                   3              /* features count */,
+                                                                                   5              /* classes count */,
+                                                                                   100            /* trees count */,
+                                                                                   2              /* count of features to do split in a tree */,
+                                                                                   0.7            /* percent of a training set of samples  */
+                                                                                                  /* used to build individual trees. */);
+
+            cls.train(ps);
+
+            double trainPrecision;
+            cls.validate(trainDataSet, out trainPrecision);
+
+            var testDataCount = 1000;
+            var testDataSet = parseDataSet("..//..//..//test_classifier//df_classification_test.csv", testDataCount);
+
+            double testPrecision;
+            cls.validate(testDataSet, out testPrecision);
+
+            Console.WriteLine("Model precision on train DAAL dataset is " + trainPrecision);
+            Console.WriteLine("Model precision on test DAAL dataset is " + testPrecision);
+
+            return testPrecision;
+        }
+
+        public bool runOnSimpleFunction()
+        {
+            return true;
         }
     }
 }
