@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+
+
 namespace Solver
 {
     class Program
@@ -12,20 +14,20 @@ namespace Solver
         {
             Console.OutputEncoding = Encoding.UTF8;
 
-#if ApproxTest
-#region Test RandomForest in Approximation algorithm
+//#if ApproxTest
+            #region Test RandomForest in Approximation algorithm
             Test t = new Test();
             //t.runDefWayTests();
             t.runRandomForestTestsLearnOnAll();
-#endregion
-#endif
-
+            #endregion
+//#endif
+#if RF_test
 #region Test RandomForest classifier
             ClassifierTest clsTest = new ClassifierTest();
             //t.runDefWayTests();
             clsTest.runOnDAALDataset();
 #endregion
-
+#endif
             //t.runRandomForestTestsLearnOnAll();
             //if (args.Length != 3)
             //{

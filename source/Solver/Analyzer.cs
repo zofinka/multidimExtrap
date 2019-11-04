@@ -58,6 +58,7 @@ namespace Solver
 
 
             int n = candidates.Length;
+            n = grid.Node.Length;
             Console.WriteLine(candidates.Length);
             //int n = grid.Node.Length;
             Classifiers.LabeledData[] ldata = new Classifiers.LabeledData[n];
@@ -67,7 +68,7 @@ namespace Solver
                 // min, max in locality
                 double maxNeighbours = double.MinValue;
                 double minNeighbours = double.MaxValue;
-                foreach (var neighbour in grid.Neighbours(candidates[i]))
+                foreach (var neighbour in grid.Neighbours(i))
                 //foreach (var neighbour in grid.Neighbours(i))
                 {
                     double[] calcNeighbour = (double[])grid.Node[neighbour].Clone();
@@ -82,7 +83,7 @@ namespace Solver
                     }
                 }
                 // current val
-                double[] cuurentNode = (double[])grid.Node[candidates[i]].Clone();
+                double[] cuurentNode = (double[])grid.Node[i].Clone();
                // double[] cuurentNode = (double[])grid.Node[i].Clone();
                 this.func.Calculate(cuurentNode);
                 double cuurentNodeVal = cuurentNode[cuurentNode.Length - 1];
@@ -98,20 +99,21 @@ namespace Solver
                 // is real function and approximation are equal, class for point
 
                 //derivative 
-                double[] derivative = calcDerivative(grid.Node[candidates[i]]);
+                double[] derivative = calcDerivative(grid.Node[i]);
                 //double[] derivative = calcDerivative(grid.Node[i]);
 
                 // build features vector
-                double[] features = new double[5 + derivative.Length];
-                features[0] = borderdist[i];
-                features[1] = error[i];
-                features[2] = maxNeighbours;
-                features[3] = minNeighbours;
-                features[4] = cuurentNodeVal;
-                for (int k = 0; k < derivative.Length; k++)
-                {
-                    features[5 + k] = derivative[k];
-                }
+                //double[] features = new double[5 + derivative.Length];
+                double[] features = new double[1];
+                //features[0] = borderdist[i];
+                features[0] = error[i];
+                //features[2] = maxNeighbours;
+                //features[3] = minNeighbours;
+                //features[4] = cuurentNodeVal;
+                //for (int k = 0; k < derivative.Length; k++)
+                //{
+                //    features[5 + k] = derivative[k];
+                //}
 
                 ldata[i] = new Classifiers.LabeledData(features, 0);
                 featureCount = features.Length;
@@ -232,7 +234,7 @@ namespace Solver
             analyse_voronoi();
             analyse_error();
 
-            int n = grid.Node.Length + xf.Length;
+            int n = grid.Node.Length;// + xf.Length;
             // int n = grid.Node.Length;
             Classifiers.LabeledData[] ldata = new Classifiers.LabeledData[n];
             int featureCount = 0;
@@ -278,34 +280,36 @@ namespace Solver
                 double[] derivative = calcDerivative(grid.Node[i]);
 
                 // build features vector
-                double[] features = new double[5 + derivative.Length];
-                features[0] = borderdist[i];
-                features[1] = error[i];
-                features[2] = maxNeighbours;
-                features[3] = minNeighbours;
-                features[4] = cuurentNodeVal;
-                for (int k = 0; k < derivative.Length; k++)
-                {
-                    features[5 + k] = derivative[k];
-                }
+                //double[] features = new double[5 + derivative.Length];
+                double[] features = new double[1];
+                //
+                //features[0] = borderdist[i];
+                features[0] = error[i];
+                //features[2] = maxNeighbours;
+                //features[3] = minNeighbours;
+                //features[4] = cuurentNodeVal;
+                //for (int k = 0; k < derivative.Length; k++)
+                //{
+                //    features[5 + k] = derivative[k];
+                //}
                
                 ldata[i] = new Classifiers.LabeledData(features, pointClass);
                 featureCount = features.Length;
             }
-            for(int i = 0; i < xf.Length; i++)
-            {
-                double[] feature = build_fetures_from_existing_points(i, calcDerivative);
-                ldata[grid.Node.Length + i] = new Classifiers.LabeledData(feature, 0);
-                featureCount = feature.Length;
-            }
+            //for(int i = 0; i < xf.Length; i++)
+            //{
+            //    double[] feature = build_fetures_from_existing_points(i, calcDerivative);
+            //    ldata[grid.Node.Length + i] = new Classifiers.LabeledData(feature, 0);
+            //    featureCount = feature.Length;
+            //}
 
 
             Classifiers.IClassifier cls = new Classifiers.RandomForest();
             Classifiers.RandomForestParams ps = new Classifiers.RandomForestParams(ldata, n   /* samples count */,
                                                                                           featureCount   /* features count */,
                                                                                           2   /* classes count */,
-                                                                                          n / 10   /* trees count */,
-                                                                                          6   /* count of features to do split in a tree */,
+                                                                                          100   /* trees count */,
+                                                                                          1   /* count of features to do split in a tree */,
                                                                                           0.7 /* percent of a training set of samples  */
                                                                                               /* used to build individual trees. */);
 
