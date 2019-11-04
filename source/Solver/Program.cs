@@ -3,13 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
+
 
 namespace Solver
 {
     class Program
     {
+        [STAThread]
         static void Main(string[] args)
         {
+           //Application.EnableVisualStyles();
+           //Application.Run(new Class1()); // or whatever
             Test t = new Test();
             //t.runDefWayTests();
             t.runRandomForestTestsLearnOnAll();
