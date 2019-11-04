@@ -113,6 +113,7 @@ namespace Solver
             Console.WriteLine(candidates.Length);
             //int n = grid.Node.Length;
             Classifiers.LabeledData[] ldata = new Classifiers.LabeledData[n];
+            Classifiers.LabeledData[] ldata1 = new Classifiers.LabeledData[n];
             int featureCount = 0;
             for (int i = 0; i < n; i++)
             {
@@ -148,6 +149,13 @@ namespace Solver
                 }
 
                 // is real function and approximation are equal, class for point
+                int pointClass = 0;
+                if (Math.Abs(meFunc(grid.Node[i]) - cuurentNodeVal) > allowErr)
+                {
+                    pointClass = 1;
+                }
+
+                // is real function and approximation are equal, class for point
 
                 //derivative 
                 //double[] derivative = calcDerivative(grid.Node[candidates[i]]);
@@ -166,6 +174,7 @@ namespace Solver
                 //}
 
                 ldata[i] = new Classifiers.LabeledData(features, 0);
+                ldata1[i] = new Classifiers.LabeledData(features, pointClass);
                 featureCount = features.Length;
             }
             List<int> newCandidates = new List<int>();
@@ -181,7 +190,10 @@ namespace Solver
                 }
             }
             candidates = newCandidates.ToArray();
-           // Console.WriteLine(candidates.Length);
+            // Console.WriteLine(candidates.Length);
+            double z;
+            cls.validate(ldata1, out z);
+            Console.WriteLine("Z " + z);
 
             xfcandidates = Tools.Sub(grid.Node, candidates);
         }

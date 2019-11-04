@@ -61,13 +61,13 @@ namespace Solver
            // interAmount = testWithRandomForest(Tests.SquaresProducts.configFile, Tests.SquaresProducts.pointFile, Tests.SquaresProducts.func, Tests.SquaresProducts.derivative);
            // Console.WriteLine("Test " + Tests.SquaresProducts.name + " END in " + interAmount + " iterations");
 
-            Console.WriteLine("Test " + Tests.SinXCosY.name + " START");
+            /*Console.WriteLine("Test " + Tests.SinXCosY.name + " START");
             interAmount = testWithRandomForest(Tests.SinXCosY.configFile, Tests.SinXCosY.pointFile, Tests.SinXCosY.func, Tests.SinXCosY.derivative);
-            Console.WriteLine("Test " + Tests.SinXCosY.name + " END in " + interAmount + " iterations");
+            Console.WriteLine("Test " + Tests.SinXCosY.name + " END in " + interAmount + " iterations");*/
 
-           /* Console.WriteLine(Tests.SinXCosXCosY.name +  " Test START");
+            Console.WriteLine(Tests.SinXCosXCosY.name +  " Test START");
             interAmount = testWithRandomForest(Tests.SinXCosXCosY.configFile, Tests.SinXCosXCosY.pointFile, Tests.SinXCosXCosY.func, Tests.SinXCosXCosY.derivative);
-            Console.WriteLine("17.sinXconYxonX Test END in " + interAmount + " iterations");*/
+            Console.WriteLine("17.sinXconYxonX Test END in " + interAmount + " iterations");
 
             /*Console.WriteLine(Tests.SinFromSumOnSum.name + " Test START");
             interAmount = testWithRandomForest(Tests.SinFromSumOnSum.configFile, Tests.SinFromSumOnSum.pointFile, Tests.SinFromSumOnSum.func, Tests.SinFromSumOnSum.derivative);
@@ -108,27 +108,35 @@ namespace Solver
 
         private int testWithRandomForest(string configFile, string pointFile, Func<double[], double> func, Func<double[], double[]> derivativeFunc)
         {
-            double[][] points = testDefWayUntilGood(configFile, pointFile, func);
-
             Parser parser = new Parser(configFile, pointFile);
-            int pointAmount = points.Length;
+            List<double[]> points = new List<double[]>();
+            points = parser.Points.ToList();
 
-            Shepard model = new Shepard(parser.FunctionDimension, points);
-            Analyzer analyzer = new Analyzer(model, points);
+            for (int j = 0; j < 5; j++)
+            {
+                points.AddRange(testDefWayUntilGood(parser, points.ToArray(), func).ToList<double[]>());
+            }
+
+
+            int pointAmount = points.Count;
+
+            Shepard model = new Shepard(parser.FunctionDimension, points.ToArray());
+            Analyzer analyzer = new Analyzer(model, points.ToArray());
             Classifiers.IClassifier cls = analyzer.learn_random_forest_on_grid(func, derivativeFunc, parser.Approximation);
 
-            /*double[][] points = new double[parser.PointAmount][];
+            double[][] pointsArray = new double[parser.PointAmount][];
+            pointAmount = pointsArray.Length;
             for (int j = 0; j < parser.PointAmount; j++)
             {
-                points[j] = (double[])parser.Points[j].Clone();
-            }*/
+                pointsArray[j] = (double[])parser.Points[j].Clone();
+            }
 
             int i = 0;
             double maxErr = 10;
             while (i < 100000000 && maxErr > parser.Approximation)
             {
-                model = new Shepard(parser.FunctionDimension, points);
-                analyzer = new Analyzer(model, points);
+                model = new Shepard(parser.FunctionDimension, pointsArray);
+                analyzer = new Analyzer(model, pointsArray);
                 analyzer.do_random_forest_analyse(cls, parser.Approximation, func, derivativeFunc);
 
                 double[][] xx = analyzer.Result;
@@ -147,7 +155,7 @@ namespace Solver
                         newPoints[j][parser.FunctionDimension] = func(newPoints[j]);
                     }
                 }
-                points = newPoints;
+                pointsArray = newPoints;
 
 
                 double[][] new_points = new double[newPointsAmount][];
@@ -167,26 +175,19 @@ namespace Solver
                     {
                         tempErr = err;
                     }
-                    Console.WriteLine("f({0}) real val {1} predict val {2} err {3}", String.Join(", ", xx[k]), points[pointAmount - newPointsAmount + k][parser.FunctionDimension], new_points[k][parser.FunctionDimension], err);
+                    Console.WriteLine("f({0}) real val {1} predict val {2} err {3}", String.Join(", ", xx[k]), pointsArray[pointAmount - newPointsAmount + k][parser.FunctionDimension], new_points[k][parser.FunctionDimension], err);
                 }
                 maxErr = tempErr;
                 i++;
             }
-            testResult(parser.FunctionDimension, points, func);
+            testResult(parser.FunctionDimension, pointsArray, func);
             return i;
         }
 
-        private double[][] testDefWayUntilGood(string configFile, string pointFile, Func<double[], double> func)
+        private double[][] testDefWayUntilGood(Parser parser, double[][] points, Func<double[], double> func)
         {
-            
-            Parser parser = new Parser(configFile, pointFile);
-            int pointAmount = parser.PointAmount;
-            double[][] points = new double[parser.PointAmount][];
-            for (int j = 0; j < parser.PointAmount; j++)
-            {
-                points[j] = (double[])parser.Points[j].Clone();
 
-            }
+            int pointAmount = parser.PointAmount;
 
             int i = 0;
             double maxErr = 10;
