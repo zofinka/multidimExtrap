@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
+
 
 
 
@@ -10,12 +12,15 @@ namespace Solver
 {
     class Program
     {
+        [STAThread]
         static void Main(string[] args)
         {
             Console.OutputEncoding = Encoding.UTF8;
-
+            //Application.EnableVisualStyles();
+            //Application.Run(new Class1()); // or whatever
 //#if ApproxTest
             #region Test RandomForest in Approximation algorithm
+
             Test t = new Test();
             //t.runDefWayTests();
             t.runRandomForestTestsLearnOnAll();

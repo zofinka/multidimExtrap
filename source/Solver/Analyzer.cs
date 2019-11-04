@@ -42,6 +42,57 @@ namespace Solver
             analyse_error();
         }
 
+        public int getGoodPr(Func<double[], double> meFunc, float allowErr)
+        {
+            int prGoodRes = 0;
+            int n = grid.Node.Length;
+            for (int i = 0; i < n; i++)
+            {
+                double[] cuurentNode = (double[])grid.Node[i].Clone();
+                this.func.Calculate(cuurentNode);
+                double cuurentNodeVal = cuurentNode[cuurentNode.Length - 1];
+                if (Math.Abs(meFunc(grid.Node[i]) - cuurentNodeVal) < allowErr)
+                {
+                    prGoodRes += 1;
+                }
+            }
+            return prGoodRes * 100 / n;
+        }
+
+        public double[][] getGoodSamples(Func<double[], double> meFunc, float allowErr, int goodPr)
+        {
+            int n = grid.Node.Length;
+            int badPr = 0;
+            int nextSample = 0;
+            int i = 0;
+            double[][] samples = new double[goodPr * n / 100 * 2][];
+            while(i < n && nextSample < samples.Length)
+            {
+                double[] cuurentNode = (double[])grid.Node[i].Clone();
+                this.func.Calculate(cuurentNode);
+                double cuurentNodeVal = cuurentNode[cuurentNode.Length - 1];
+                if (Math.Abs(meFunc(grid.Node[i]) - cuurentNodeVal) < allowErr)
+                {
+                    //samples[nextSample] = new double[grid.Node[i].Length];
+                    samples[nextSample] = grid.Node[i];
+                    nextSample += 1;
+                } else
+                {
+                    if (badPr  < samples.Length / 2)
+                    {
+                        //samples[nextSample] = new double[grid.Node[i].Length];
+                        samples[nextSample] = grid.Node[i];
+                        nextSample += 1;
+                        badPr += 1;
+                    }
+                }
+                i += 1;
+            }
+            return samples;
+        }
+
+
+
         public void do_default_analyse(int[] count)
         {
             create_grid(count);
@@ -54,11 +105,11 @@ namespace Solver
             int[] count = new int[N]; for (int i = 0; i < N; i++) count[i] = (Min[i] == Max[i]) ? 1 : NGRID;
             create_grid(count);
             analyse_voronoi();
-            analyse_error();
+            analyse_all_error();
 
 
-            int n = candidates.Length;
-            n = grid.Node.Length;
+            //int n = candidates.Length;
+            int n = grid.Node.Length;
             Console.WriteLine(candidates.Length);
             //int n = grid.Node.Length;
             Classifiers.LabeledData[] ldata = new Classifiers.LabeledData[n];
@@ -127,10 +178,11 @@ namespace Solver
                 {
                     //newCandidates.Add(candidates[i]);
                     newCandidates.Add(i);
+                    //Console.WriteLine("err " + ldata[i].data[1]);
                 }
             }
             candidates = newCandidates.ToArray();
-            Console.WriteLine(candidates.Length);
+           // Console.WriteLine(candidates.Length);
 
             xfcandidates = Tools.Sub(grid.Node, candidates);
         }
@@ -229,10 +281,11 @@ namespace Solver
         public Classifiers.IClassifier learn_random_forest_on_grid(Func<double[], double> meFunc, Func<double[], double[]> calcDerivative, double allowErr)
         {
 
+            Console.WriteLine("MN " + M + " " + N );
             int[] count = new int[N]; for (int i = 0; i < N; i++) count[i] = (Min[i] == Max[i]) ? 1 : NGRID;
             create_grid(count);
             analyse_voronoi();
-            analyse_error();
+            analyse_all_error();
 
             int n = grid.Node.Length;// + xf.Length;
             // int n = grid.Node.Length;
@@ -306,7 +359,7 @@ namespace Solver
 
             Classifiers.IClassifier cls = new Classifiers.RandomForest();
             Classifiers.RandomForestParams ps = new Classifiers.RandomForestParams(ldata, n   /* samples count */,
-                                                                                          featureCount   /* features count */,
+                                                                                          1   /* features count */,
                                                                                           2   /* classes count */,
                                                                                           100   /* trees count */,
                                                                                           1   /* count of features to do split in a tree */,
@@ -316,8 +369,22 @@ namespace Solver
             cls.train(ps);
             double trainModelPrecision;
             cls.validate(ldata, out trainModelPrecision);
+            for (int i = 0; i < 10; i++)
+            {
+                int y;
+                cls.infer(ldata[i].data, out y);
+                double[] cuurentNode = (double[])grid.Node[i].Clone();
+                this.func.Calculate(cuurentNode);
+                int pointClass = 0;
+                if (Math.Abs(meFunc(grid.Node[i]) - cuurentNode[cuurentNode.Length - 1]) > allowErr)
+                {
+                    pointClass = 1;
+                }
 
-            Console.WriteLine("Model precision on training dataset: " + trainModelPrecision);
+              //  Console.WriteLine(" pointClass " + pointClass + " y " + y);
+            }
+
+            //Console.WriteLine("Model precision on training dataset: " + trainModelPrecision);
             return cls;
         }
 
@@ -333,9 +400,9 @@ namespace Solver
 
         private void create_grid(int[] count)
         {
-            Console.WriteLine("Построение сетки ({0})", count.Str());
+            //Console.WriteLine("Построение сетки ({0})", count.Str());
             grid = new Grid(N, M, Min, Max, count);
-            Console.WriteLine("Сетка на {0} узлах построена успешно", grid.Node.Length);
+            //Console.WriteLine("Сетка на {0} узлах построена успешно", grid.Node.Length);
         }
 
         private void analyse_voronoi()
@@ -345,7 +412,7 @@ namespace Solver
             for (int i = 0; i < xf.Length; i++)
                 adjncy[i] = new SortedSet<int>();
 
-            Console.WriteLine("Разбиение пространства на домены");
+           // Console.WriteLine("Разбиение пространства на домены");
             Queue<int> queue = new Queue<int>();
             domain = new int[grid.Node.Length];
             double[] dist = new double[grid.Node.Length];
@@ -397,7 +464,7 @@ namespace Solver
             //Console.WriteLine("dist " + String.Join(", ", dist));
             //Console.WriteLine("domen " + String.Join(", ", domain));
 
-            Console.WriteLine("Построение графа доменов");
+            //Console.WriteLine("Построение графа доменов");
             //строю граф соседства доменов
             graph = new int[xf.Length][];
             for (int i = 0; i < xf.Length; i++)
@@ -407,7 +474,7 @@ namespace Solver
                // Console.WriteLine("dist " + String.Join(", ", adjncy[i]));
             }
 
-            Console.WriteLine("Построение диграммы Вороного на сетке");
+            //Console.WriteLine("Построение диграммы Вороного на сетке");
             //уточняю домены (диаграмма вороного на сетке)
             for (int i = 0; i < grid.Node.Length; i++)
             {
@@ -421,7 +488,7 @@ namespace Solver
                 }
             }
 
-            Console.WriteLine("Вычисление границ доменов");
+            //Console.WriteLine("Вычисление границ доменов");
             //вычисляю границы доменов
             borderdist = new double[grid.Node.Length];
             bordernear = new int[grid.Node.Length];
@@ -441,7 +508,7 @@ namespace Solver
             }
             candidates = queue.ToArray();
 
-            Console.WriteLine("Построение функции расстояний до границ доменов");
+            //Console.WriteLine("Построение функции расстояний до границ доменов");
             //вычисляю расстояния от границ
             while (queue.Count > 0)
             {
@@ -467,7 +534,7 @@ namespace Solver
                 }
             }
 
-            Console.WriteLine("Нормировка функции расстояний до границ доменов");
+            //Console.WriteLine("Нормировка функции расстояний до границ доменов");
             //нормирую расстояния от границ
             for (int i = 0; i < grid.Node.Length; i++)
             {
@@ -492,13 +559,13 @@ namespace Solver
 
         private void analyse_error()
         {
-            Console.WriteLine("Вычисление локальных экстраполянтов");
+            //Console.WriteLine("Вычисление локальных экстраполянтов");
             //вычисляю экстраполянты
             Shepard[] sh = new Shepard[xf.Length];
             for (int i = 0; i < xf.Length; i++)
                 sh[i] = new Shepard(N, xf, graph[i]);
 
-            Console.WriteLine("Аппроксимация значений исходной функции на границах доменов");
+            //Console.WriteLine("Аппроксимация значений исходной функции на границах доменов");
             //пересчитываю значения в узлах решетки только на границах доменов
             for (int i = 0; i < grid.Node.Length; i++)
             {
@@ -506,7 +573,7 @@ namespace Solver
                 sh[domain[i]].Calculate(grid.Node[i]);
             }
 
-            Console.WriteLine("Вычисление ошибки аппроксимации функции на границах доменов");
+            //Console.WriteLine("Вычисление ошибки аппроксимации функции на границах доменов");
             //вычисляю ошибку на границах доменов
             error = new double[grid.Node.Length];
             for (int i = 0; i < grid.Node.Length; i++)
@@ -520,7 +587,7 @@ namespace Solver
                 }
             }
 
-            Console.WriteLine("Интерполяция ошибки аппроксимации функции на области доменов");
+            //Console.WriteLine("Интерполяция ошибки аппроксимации функции на области доменов");
             //интерполирую ошибку
             double max = 0;
             for (int i = 0; i < grid.Node.Length; i++)
@@ -531,17 +598,17 @@ namespace Solver
                 if (max < error[i]) max = error[i];
             }
 
-            Console.WriteLine("Нормировка функции ошибки");
+            //Console.WriteLine("Нормировка функции ошибки");
             //нормирую ошибку
             if (max > 0) 
                 for (int i = 0; i < grid.Node.Length; i++)
                     error[i] = error[i] / max;
 
             int maxcandidates = Math.Min(candidates.Length, 1000);
-            if (candidates.Length > maxcandidates)
-                Console.WriteLine("Предварительный отбор {1} из {0} кандидатов", candidates.Length, maxcandidates);
+            //if (candidates.Length > maxcandidates)
+            //    Console.WriteLine("Предварительный отбор {1} из {0} кандидатов", candidates.Length, maxcandidates);
 
-            Console.WriteLine("Упорядочение {0} потенциальных кандидатов", maxcandidates);
+            //Console.WriteLine("Упорядочение {0} потенциальных кандидатов", maxcandidates);
             //сортировка потенциальных кандидатов
             for (int i = 0; i < maxcandidates - 1; i++)
                 for (int j = i + 1; j < candidates.Length; j++)
@@ -552,7 +619,80 @@ namespace Solver
                         candidates[j] = temp;
                     }
 
-            Console.WriteLine("Формирование списка кандидатов", maxcandidates);
+            //Console.WriteLine("Формирование списка кандидатов", maxcandidates);
+            candidates = Tools.Sub(candidates, 0, maxcandidates);
+            xfcandidates = Tools.Sub(grid.Node, candidates);
+            for (int i = 0; i < xfcandidates.Length; i++)
+            {
+                //func.Calculate(xfcandidates[i]);
+                for (int j = N; j < N + M; j++) xfcandidates[i][j] = 0;
+            }
+            Console.WriteLine("Процесс расчета закончен успешно");
+        }
+
+        private void analyse_all_error()
+        {
+            //Console.WriteLine("Вычисление локальных экстраполянтов");
+            //вычисляю экстраполянты
+            Shepard[] sh = new Shepard[xf.Length];
+            for (int i = 0; i < xf.Length; i++)
+                sh[i] = new Shepard(N, xf, graph[i]);
+
+            //Console.WriteLine("Аппроксимация значений исходной функции на границах доменов");
+            //пересчитываю значения в узлах решетки только на границах доменов
+            for (int i = 0; i < grid.Node.Length; i++)
+            {
+                //if (borderdist[i] > 0) continue;
+                sh[domain[i]].Calculate(grid.Node[i]);
+            }
+
+            //Console.WriteLine("Вычисление ошибки аппроксимации функции на границах доменов");
+            //вычисляю ошибку на границах доменов
+            error = new double[grid.Node.Length];
+            for (int i = 0; i < grid.Node.Length; i++)
+            {
+                //if (borderdist[i] > 0) continue;
+                error[i] = 0;
+                foreach (var adj in grid.Neighbours(i))
+                {
+                    double d = distanceF(grid.Node[i], grid.Node[adj]);
+                    if (error[i] < d) error[i] = d;
+                }
+            }
+
+            //Console.WriteLine("Интерполяция ошибки аппроксимации функции на области доменов");
+            //интерполирую ошибку
+            double max = 0;
+            for (int i = 0; i < grid.Node.Length; i++)
+            {
+                int brd = bordernear[i];
+                double err = error[brd];
+                error[i] = err * (1 - borderdist[i]);
+                if (max < error[i]) max = error[i];
+            }
+
+            //Console.WriteLine("Нормировка функции ошибки");
+            //нормирую ошибку
+            if (max > 0)
+                for (int i = 0; i < grid.Node.Length; i++)
+                    error[i] = error[i] / max;
+
+            int maxcandidates = Math.Min(candidates.Length, 1000);
+            //if (candidates.Length > maxcandidates)
+            //    Console.WriteLine("Предварительный отбор {1} из {0} кандидатов", candidates.Length, maxcandidates);
+
+            //Console.WriteLine("Упорядочение {0} потенциальных кандидатов", maxcandidates);
+            //сортировка потенциальных кандидатов
+            for (int i = 0; i < maxcandidates - 1; i++)
+                for (int j = i + 1; j < candidates.Length; j++)
+                    if (error[candidates[i]] < error[candidates[j]])
+                    {
+                        int temp = candidates[i];
+                        candidates[i] = candidates[j];
+                        candidates[j] = temp;
+                    }
+
+            //Console.WriteLine("Формирование списка кандидатов", maxcandidates);
             candidates = Tools.Sub(candidates, 0, maxcandidates);
             xfcandidates = Tools.Sub(grid.Node, candidates);
             for (int i = 0; i < xfcandidates.Length; i++)
