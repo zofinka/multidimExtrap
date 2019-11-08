@@ -109,6 +109,7 @@ namespace Solver
                 i++;
             }
             testResult(parser.FunctionDimension, pointsArray, func);
+            Console.WriteLine(" Avg err " + calc_err(func, points.ToList(), parser));
             return i;
         }
 

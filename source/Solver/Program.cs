@@ -20,12 +20,12 @@ namespace Solver
             //defTest.run();
 
             Test randomForestTest;
-            //Test randomForestTest = new TestRandomForestBestAprxClass();
-            //randomForestTest.run();
-
-
-            randomForestTest = new TestRandomForestLearnAndDoOnOne();
+            randomForestTest = new TestRandomForestBestAprxClass();
             randomForestTest.run();
+
+
+            //randomForestTest = new TestRandomForestLearnAndDoOnOne();
+            //randomForestTest.run();
 
             //t.runDefWayTests();
             //t.runRandomForestTestsLearnOnAll();
