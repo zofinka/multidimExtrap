@@ -8,13 +8,13 @@ namespace Solver
 {
     namespace Tests
     {
-        class SquareArea
+        class SquareArea: Tests.IFunction
         {
-            public static string config = @"C:\Users\Sofya\multidimExtrap\source\test_data\1.SquareArea\config.cfg";
-            public static string pointFile = @"C:\Users\Sofya\multidimExtrap\source\test_data\1.SquareArea\points.txt";
-            public static string name = "Square Area x1 * x2 * ... ";
+            public string configFile { get { return @"C:\Users\Sofya\multidimExtrap\source\test_data\1.SquareArea\config.cfg"; } }
+            public string pointFile { get { return @"C:\Users\Sofya\multidimExtrap\source\test_data\1.SquareArea\points.txt"; } }
+            public string name { get { return "Square Area x1 * x2 * ... "; } }
 
-            public static double func(double[] points)
+            public double func(double[] points)
             {
                 double res = 1;
                 for (int i = 0; i < points.Length - 1; i++)
@@ -24,7 +24,7 @@ namespace Solver
                 return res;
             }
 
-            public static double[] derivative(double[] points)
+            public double[] derivative(double[] points)
             {
                 double[] derivative = new double[points.Length - 1];
                 for (int i = 0; i < points.Length - 1; i++)
