@@ -77,6 +77,11 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Shepard.cs" />
     <Compile Include="Test.cs" />
+    <Compile Include="TestDefWay.cs" />
+    <Compile Include="TestRandomForestBestAprxClass.cs" />
+    <Compile Include="TestRandomForestLearnAndDoOnOne.cs" />
+    <Compile Include="tests\Function.cs" />
+    <Compile Include="tests\IFunction.cs" />
     <Compile Include="tests\PyramidVolume.cs" />
     <Compile Include="tests\SinFromSumOnSum.cs" />
     <Compile Include="tests\SinXCosXCosY.cs" />

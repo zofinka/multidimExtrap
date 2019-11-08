@@ -8,17 +8,18 @@ namespace Solver
 {
     namespace Tests
     {
-        class SinXCosY
+        class SinXCosY: Tests.IFunction
         {
-            public static string configFile = @"C:\Users\apronina\Syncplicity\Study\multidimExtrap\source\test_data\12.sincos\config.cfg";
-            public static string pointFile = @"C:\Users\apronina\Syncplicity\Study\multidimExtrap\source\test_data\12.sincos\points.txt";
-            public static string name = "SinCon sin(x1) * con(x2) ";
-            public static double func(double[] points)
+            public string configFile { get { return @"C:\Users\apronina\Syncplicity\Study\multidimExtrap\source\test_data\12.sincos\config.cfg"; } }
+            public string pointFile { get { return @"C:\Users\apronina\Syncplicity\Study\multidimExtrap\source\test_data\12.sincos\points.txt"; } }
+            public string name { get { return "SinCon sin(x1) * con(x2) "; } }
+
+            public double func(double[] points)
             {
                 return Math.Sin(points[0]) * Math.Cos(points[1]);
             }
 
-            public static double[] derivative(double[] points)
+            public double[] derivative(double[] points)
             {
                 return new double[2] { Math.Cos(points[0]) * Math.Cos(points[1]), -1 * Math.Sin(points[0]) * Math.Sin(points[1]) };
             }

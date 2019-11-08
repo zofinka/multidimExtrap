@@ -15,16 +15,23 @@ namespace Solver
         [STAThread]
         static void Main(string[] args)
         {
+#region Test Whole Algorithm
             Console.OutputEncoding = Encoding.UTF8;
             //Application.EnableVisualStyles();
             //Application.Run(new Class1()); // or whatever
 //#if ApproxTest
-            #region Test RandomForest in Approximation algorithm
+            Test defTest = new TestDefWay();
+            //defTest.run();
 
-            Test t = new Test();
-            //t.runDefWayTests();
-            t.runRandomForestTestsLearnOnAll();
-            #endregion
+            Test randomForestTest;
+            //Test randomForestTest = new TestRandomForestBestAprxClass();
+            //randomForestTest.run();
+
+
+            randomForestTest = new TestRandomForestLearnAndDoOnOne();
+            randomForestTest.run();
+#endregion
+
 //#endif
 #if RF_test
 #region Test RandomForest classifier
@@ -34,6 +41,7 @@ namespace Solver
 #endregion
 #endif
             //t.runRandomForestTestsLearnOnAll();
+            //t.runRandomForestTestsLearnOnOneUseForAnother();
             //if (args.Length != 3)
             //{
             //    Console.WriteLine("Missing input parameters.");
