@@ -20,15 +20,15 @@ namespace Solver
             //Application.EnableVisualStyles();
             //Application.Run(new Class1()); // or whatever
 //#if ApproxTest
-            Test defTest = new TestDefWay();
+            //Test defTest = new TestDefWay();
             //defTest.run();
 
             Test randomForestTest;
-            //Test randomForestTest = new TestRandomForestBestAprxClass();
+            randomForestTest = new TestRandomForestBestAprxClass();
             //randomForestTest.run();
 
 
-            randomForestTest = new TestRandomForestLearnAndDoOnOne();
+            //randomForestTest = new TestRandomForestLearnAndDoOnOne();
             randomForestTest.run();
 #endregion
 

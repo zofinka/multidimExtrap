@@ -9,74 +9,7 @@ namespace Solver
 {
     abstract class Test
     {
-<<<<<<< HEAD
-        public void runDefWayTests()
-        {
-            Console.WriteLine("TESTS: Default way\n");
-            int interAmount;
-
-            // 1 iteration on def algorithm 
-            /*Console.WriteLine(Tests.SquareArea.name + " START \n");
-            interAmount = testDefWay(Tests.SquareArea.config, Tests.SquareArea.pointFile, Tests.SquareArea.func);
-            Console.WriteLine(Tests.SquareArea.name +  " END in " + interAmount + " iterations\n");*/
-
-            // 1 interation with def algorithm 
-            /*Console.WriteLine(Tests.PyramidVolume.name + " Test START");
-            interAmount = testDefWay(Tests.PyramidVolume.config, Tests.PyramidVolume.pointFile, Tests.PyramidVolume.func);
-            Console.WriteLine(Tests.PyramidVolume.name  + " Test END in " + interAmount + " iterations");*/
-
-            /*Console.WriteLine(Tests.TruncPyramid.name + " Test START");
-            interAmount = testDefWay(Tests.TruncPyramid.configFile, Tests.TruncPyramid.pointFile, Tests.TruncPyramid.func);
-            Console.WriteLine(Tests.TruncPyramid.name  + " Test END in " + interAmount + " iterations");*/
-
-            //126 interation
-            //Console.WriteLine("Test " + Tests.SquaresProducts.name + " START");
-            //interAmount = testDefWay(Tests.SquaresProducts.configFile, Tests.SquaresProducts.pointFile, Tests.SquaresProducts.func);
-            //Console.WriteLine("Test " + Tests.SquaresProducts.name + " END in " + interAmount + " iterations");
-
-            // 212 iteration
-            //Console.WriteLine("Test " + Tests.SinXCosY.name + " START");
-            //interAmount = testDefWay(Tests.SinXCosY.configFile, Tests.SinXCosY.pointFile, Tests.SinXCosY.func);
-            //Console.WriteLine("Test " + Tests.SinXCosY.name + " END in " + interAmount + " iterations");
-
-            //133 iteration
-            Console.WriteLine(Tests.SinXCosXCosY.name + " Test START");
-            interAmount = testDefWay(Tests.SinXCosXCosY.configFile, Tests.SinXCosXCosY.pointFile, Tests.SinXCosXCosY.func);
-            Console.WriteLine(Tests.SinXCosXCosY.name + " Test END in " + interAmount + " iterations");
-
-            //14 interation
-            //Console.WriteLine(Tests.SinFromSumOnSum.name + " Test START");
-            //interAmount = testDefWay(Tests.SinFromSumOnSum.configFile, Tests.SinFromSumOnSum.pointFile, Tests.SinFromSumOnSum.func);
-            //Console.WriteLine(Tests.SinFromSumOnSum.name + " Test END in " + interAmount + " iterations");
-        }
-
-        public void runRandomForestTestsLearnOnAll()
-        {
-            int interAmount;
-
-            /*Console.WriteLine("Square Area Function Test START");
-            interAmount = testWithRandomForest(Tests.SquareArea.config, Tests.SquareArea.config, Tests.SquareArea.func, Tests.SquareArea.derivative);
-            Console.WriteLine("Square Area Function Test END in " + interAmount + " iterations");*/
-
-           // Console.WriteLine("Test " + Tests.SquaresProducts.name + " START");
-           // interAmount = testWithRandomForest(Tests.SquaresProducts.configFile, Tests.SquaresProducts.pointFile, Tests.SquaresProducts.func, Tests.SquaresProducts.derivative);
-           // Console.WriteLine("Test " + Tests.SquaresProducts.name + " END in " + interAmount + " iterations");
-
-            /*Console.WriteLine("Test " + Tests.SinXCosY.name + " START");
-            interAmount = testWithRandomForest(Tests.SinXCosY.configFile, Tests.SinXCosY.pointFile, Tests.SinXCosY.func, Tests.SinXCosY.derivative);
-            Console.WriteLine("Test " + Tests.SinXCosY.name + " END in " + interAmount + " iterations");*/
-
-            Console.WriteLine(Tests.SinXCosXCosY.name +  " Test START");
-            interAmount = testWithRandomForest(Tests.SinXCosXCosY.configFile, Tests.SinXCosXCosY.pointFile, Tests.SinXCosXCosY.func, Tests.SinXCosXCosY.derivative);
-            Console.WriteLine("17.sinXconYxonX Test END in " + interAmount + " iterations");
-
-            /*Console.WriteLine(Tests.SinFromSumOnSum.name + " Test START");
-            interAmount = testWithRandomForest(Tests.SinFromSumOnSum.configFile, Tests.SinFromSumOnSum.pointFile, Tests.SinFromSumOnSum.func, Tests.SinFromSumOnSum.derivative);
-            Console.WriteLine(Tests.SinFromSumOnSum.name + " Test END in " + interAmount + " iterations");*/
-        }
-=======
         const int NGRID = 100;
->>>>>>> e94dd9ba66d510b3fb0a9d58f9a6c5db88d80ca4
 
         public abstract void run();
         
