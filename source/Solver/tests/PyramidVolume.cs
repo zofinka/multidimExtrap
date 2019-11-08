@@ -8,13 +8,13 @@ namespace Solver
 {
     namespace Tests
     {
-        class PyramidVolume
+        class PyramidVolume: Tests.IFunction
         {
-            public static string config = @"C:\Users\Sofya\multidimExtrap\source\test_data\3.PyramidVolume\config.cfg";
-            public static string pointFile = @"C:\Users\Sofya\multidimExtrap\source\test_data\3.PyramidVolume\points.txt";
-            public static string name = "Pyramid volume ";
+            public string configFile { get { return @"C:\Users\Sofya\multidimExtrap\source\test_data\3.PyramidVolume\config.cfg"; } }
+            public string pointFile { get { return @"C:\Users\Sofya\multidimExtrap\source\test_data\3.PyramidVolume\points.txt"; } }
+            public string name { get { return "Pyramid volume "; } }
 
-            public static double func(double[] points)
+            public double func(double[] points)
             {
                 double res = 1;
                 for (int i = 0; i < points.Length - 1; i++)
@@ -24,7 +24,7 @@ namespace Solver
                 return res / 3;
             }
 
-            public static double[] derivative(double[] points)
+            public double[] derivative(double[] points)
             {
                 double[] derivative = new double[points.Length - 1];
                 for (int i = 0; i < points.Length - 1; i++)

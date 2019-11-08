@@ -8,19 +8,19 @@ namespace Solver
 {
     namespace Tests
     {
-        class SinFromSumOnSum
+        class SinFromSumOnSum : Tests.IFunction
         {
-            public static string configFile = @"C:\Users\Sofya\multidimExtrap\source\test_data\16.sin(x+y)on(x+y)\config.cfg";
-            public static string pointFile = @"C: \Users\Sofya\multidimExtrap\source\test_data\16.sin(x+y)on(x+y)\points.txt";
-            public static string name = "SinFromSumOnSum sin(x1 + x2) / (x1 + x2)";
+            public string configFile { get { return @"C:\Users\Sofya\multidimExtrap\source\test_data\16.sin(x+y)on(x+y)\config.cfg"; } }
+            public string pointFile { get { return @"C: \Users\Sofya\multidimExtrap\source\test_data\16.sin(x+y)on(x+y)\points.txt"; } }
+            public string name { get { return "SinFromSumOnSum sin(x1 + x2) / (x1 + x2)"; }}
 
             // sin(x + y) / x + y
-            public static double func(double[] points)
+            public double func(double[] points)
             {
                 return Math.Sin(points[0] + points[1]) / points[0] + points[1];
             }
 
-            public static double[] derivative(double[] points)
+            public double[] derivative(double[] points)
             {
                 return new double[2] { (Math.Cos(points[0] + points[1]) * (points[0] + points[1]) - Math.Sin(points[0] + points[1])) / (points[0] + points[1]),
                                    Math.Cos(points[0]) * (points[0] + points[1]) - Math.Sin(points[0] + points[1])  / (points[0] + points[1])};
