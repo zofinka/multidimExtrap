@@ -10,8 +10,9 @@ namespace Solver
     {
         class SinFromSumOnSum
         {
-            public static string configFile = @"C:\Users\Sofya\multidimExtrap\source\test_data\16.sin(x+y)on(x+y)\config.cfg";
-            public static string pointFile = @"C: \Users\Sofya\multidimExtrap\source\test_data\16.sin(x+y)on(x+y)\points.txt";
+           
+            public static string configFile = @"C:\Users\apronina\Syncplicity\Study\multidimExtrap\source\test_data\16.sin(x+y)on(x+y)\config.cfg";
+            public static string pointFile = @"C:\Users\apronina\Syncplicity\Study\multidimExtrap\source\test_data\16.sin(x+y)on(x+y)\points.txt";
             public static string name = "SinFromSumOnSum sin(x1 + x2) / (x1 + x2)";
 
             // sin(x + y) / x + y

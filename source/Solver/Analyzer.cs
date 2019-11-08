@@ -534,7 +534,7 @@ namespace Solver
                     if (bordernear[adj] >= 0)
                     {
                         if (d < borderdist[adj])
-                        {
+                        { 
                             bordernear[adj] = brd;
                             borderdist[adj] = d;
                         }
@@ -571,11 +571,36 @@ namespace Solver
 
         private void analyse_error()
         {
+            for (int i = 0; i < grid.Node.Length; i++)
+            {
+                this.func.Calculate(grid.Node[i]);
+            }
+
             //Console.WriteLine("Вычисление локальных экстраполянтов");
             //вычисляю экстраполянты
+            int[][] newGraph = new int[xf.Length][];
+            for (int i = 0; i < xf.Length; ++i)
+            {
+                List<int> domainNeighbours = new List<int>();
+
+                domainNeighbours.AddRange(graph[i].ToArray());
+                var index = domainNeighbours.FindIndex(delegate (int el) { return el > i; });
+
+                if (index > -1)
+                {
+                    domainNeighbours.RemoveAt(index);
+                }
+
+                newGraph[i] = domainNeighbours.ToArray();
+            }
+
             Shepard[] sh = new Shepard[xf.Length];
             for (int i = 0; i < xf.Length; i++)
-                sh[i] = new Shepard(N, xf, graph[i]);
+                sh[i] = new Shepard(N, xf, newGraph[i]);
+
+            //Shepard[] sh = new Shepard[xf.Length];
+            //for (int i = 0; i < xf.Length; i++)
+            //    sh[i] = new Shepard(N, xf, graph[i]);
 
             //Console.WriteLine("Аппроксимация значений исходной функции на границах доменов");
             //пересчитываю значения в узлах решетки только на границах доменов
@@ -624,7 +649,7 @@ namespace Solver
             //сортировка потенциальных кандидатов
             for (int i = 0; i < maxcandidates - 1; i++)
                 for (int j = i + 1; j < candidates.Length; j++)
-                    if (error[candidates[i]] < error[candidates[j]])
+                    if (error[candidates[i]] > error[candidates[j]])
                     {
                         int temp = candidates[i];
                         candidates[i] = candidates[j];

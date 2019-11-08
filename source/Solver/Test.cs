@@ -30,23 +30,23 @@ namespace Solver
 
             //126 interation
             //Console.WriteLine("Test " + Tests.SquaresProducts.name + " START");
-           // interAmount = testDefWay(Tests.SquaresProducts.configFile, Tests.SquaresProducts.pointFile, Tests.SquaresProducts.func);
+            //interAmount = testDefWay(Tests.SquaresProducts.configFile, Tests.SquaresProducts.pointFile, Tests.SquaresProducts.func);
             //Console.WriteLine("Test " + Tests.SquaresProducts.name + " END in " + interAmount + " iterations");
 
             // 212 iteration
-            Console.WriteLine("Test " + Tests.SinXCosY.name + " START");
-            interAmount = testDefWay(Tests.SinXCosY.configFile, Tests.SinXCosY.pointFile, Tests.SinXCosY.func);
-            Console.WriteLine("Test " + Tests.SinXCosY.name + " END in " + interAmount + " iterations");
+            //Console.WriteLine("Test " + Tests.SinXCosY.name + " START");
+            //interAmount = testDefWay(Tests.SinXCosY.configFile, Tests.SinXCosY.pointFile, Tests.SinXCosY.func);
+            //Console.WriteLine("Test " + Tests.SinXCosY.name + " END in " + interAmount + " iterations");
 
             //133 iteration
-            /*Console.WriteLine(Tests.SinXCosXCosY.name  + " Test START");
+            Console.WriteLine(Tests.SinXCosXCosY.name + " Test START");
             interAmount = testDefWay(Tests.SinXCosXCosY.configFile, Tests.SinXCosXCosY.pointFile, Tests.SinXCosXCosY.func);
-            Console.WriteLine(Tests.SinXCosXCosY.name  + " Test END in " + interAmount + " iterations");*/
+            Console.WriteLine(Tests.SinXCosXCosY.name + " Test END in " + interAmount + " iterations");
 
             //14 interation
-            /*Console.WriteLine(Tests.SinFromSumOnSum.name + " Test START");
-            interAmount = testDefWay(Tests.SinFromSumOnSum.configFile, Tests.SinFromSumOnSum.pointFile, Tests.SinFromSumOnSum.func);
-            Console.WriteLine(Tests.SinFromSumOnSum.name + " Test END in " + interAmount + " iterations");*/
+            //Console.WriteLine(Tests.SinFromSumOnSum.name + " Test START");
+            //interAmount = testDefWay(Tests.SinFromSumOnSum.configFile, Tests.SinFromSumOnSum.pointFile, Tests.SinFromSumOnSum.func);
+            //Console.WriteLine(Tests.SinFromSumOnSum.name + " Test END in " + interAmount + " iterations");
         }
 
         public void runRandomForestTestsLearnOnAll()
@@ -152,7 +152,7 @@ namespace Solver
                     newPointsList.Add(newPoint);                   
                 }
 
-                points = newPointsList.ToArray<double[]>();
+                points = newPointsList;
 
                 double[][] new_points = new double[newPointsAmount][];
                 for (int j = 0; j < newPointsAmount; j++)

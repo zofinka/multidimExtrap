@@ -10,8 +10,8 @@ namespace Solver
     {
         class SquaresProducts
         {
-            public static string configFile = @"C:\Users\Sofya\multidimExtrap\source\test_data\11.SquaresProducts\config.cfg";
-            public static string pointFile = @"C: \Users\Sofya\multidimExtrap\source\test_data\11.SquaresProducts\points.txt";
+            public static string configFile = @"C:\Users\apronina\Syncplicity\Study\multidimExtrap\source\test_data\11.SquaresProducts\config.cfg";
+            public static string pointFile = @"C: \Users\apronina\Syncplicity\Study\multidimExtrap\source\test_data\11.SquaresProducts\points.txt";
             public static string name = "SquaresProducts x1^2 * x2^2 * ..."; 
 
             // x^2*y^2 + 2
