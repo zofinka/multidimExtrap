@@ -11,6 +11,7 @@ namespace Solver
         double[][] xfcandidates;
         Grid grid;
         int[] domain;
+        double[] dist;
         int[][] graph;
         double[] borderdist;
         int[] bordernear;
@@ -101,25 +102,31 @@ namespace Solver
             analyse_error();
         }
 
-        public void do_random_forest_analyse(Classifiers.IClassifier cls, Func<double[], IFunction, Grid, double[]> build_features)
+        
+        public void do_random_forest_analyse(Classifiers.IClassifier cls, Func<double[], IFunction, Grid, double[], double[][], int, double[]> build_features)
         {
             int[] count = new int[N]; for (int i = 0; i < N; i++) count[i] = (Min[i] == Max[i]) ? 1 : NGRID;
             create_grid(count);
             analyse_voronoi();
             analyse_error();
 
-            Classifiers.LabeledData[] ldata = new Classifiers.LabeledData[grid.Node.Length];
+            //int n = candidates.Length;
+            int n = grid.Node.Length;
+            Classifiers.LabeledData[] ldata = new Classifiers.LabeledData[n];
+            // 
             for (int i = 0; i < grid.Node.Length; i++)
+            //for (int i = 0; i < candidates.Length; i++)
             {
-                ldata[i] = new Classifiers.LabeledData(build_features(grid.Node[i], this.func, grid), 0);
+                ldata[i] = new Classifiers.LabeledData(build_features(grid.Node[i], this.func, grid, this.dist, xf, i), 0);
+                //ldata[i] = new Classifiers.LabeledData(build_features(grid.Node[candidates[i]], this.func, grid, this.dist, xf, candidates[i]), 0);
             }
 
             List<int> newCandidates = new List<int>();
-            int[] y = new int[ldata.Length];
+            Object[] y = new Object[ldata.Length];
             for (int i = 0; i < ldata.Length; i++)
             {
                 cls.infer(ldata[i].data, out y[i]);
-                if (y[i] == 1)
+                if ((int)y[i] == 1)
                 {
                     newCandidates.Add(i);
                 }
@@ -131,7 +138,6 @@ namespace Solver
             Console.WriteLine("Z " + z);
 
             xfcandidates = Tools.Sub(grid.Node, candidates);
-
         }
 
         public void do_random_forest_analyse(Classifiers.IClassifier cls, double allowErr, Func<double[], double> meFunc, Func<double[], double[]> calcDerivative)
@@ -215,11 +221,11 @@ namespace Solver
                 featureCount = features.Length;
             }
             List<int> newCandidates = new List<int>();
-            int[] y = new int[ldata.Length];
+            Object[] y = new Object[ldata.Length];
             for (int i = 0; i < ldata.Length; i++)
             {
                 cls.infer(ldata[i].data, out y[i]);
-                if (y[i] == 1)
+                if ((int)y[i] == 1)
                 {
                     //newCandidates.Add(candidates[i]);
                     newCandidates.Add(i);
@@ -288,45 +294,9 @@ namespace Solver
             return features;
         }
 
-        public Classifiers.IClassifier learn_random_forest_on_known_points(Func<double[], double> meFunc, Func<double[], double[]> calcDerivative, double allowErr)
-        {
-            int[] count = new int[N]; for (int i = 0; i < N; i++) count[i] = (Min[i] == Max[i]) ? 1 : NGRID;
-            create_grid(count);
-            analyse_voronoi();
-            analyse_error();
-
-            int n = xf.Length;
-            Classifiers.LabeledData[] ldata = new Classifiers.LabeledData[n];
-            int featureCount = 0;
-            for (int i = 0; i < n; i++)
-            {
-                double[] feature = build_fetures_from_existing_points(i, calcDerivative);
-                ldata[i] = new Classifiers.LabeledData(feature, 1);
-                featureCount = feature.Length;
-            }
-
         
-           Classifiers.IClassifier cls = new Classifiers.RandomForest();
-           
-           Classifiers.RandomForestParams ps = new Classifiers.RandomForestParams(ldata, n   /* samples count */,
-                                                                                        featureCount   /* features count */,
-                                                                                        2   /* classes count */,
-                                                                                       n / 10   /* trees count */,
-                                                                                       5   /* count of features to do split in a tree */,
-                                                                                       0.7 /* percent of a training set of samples  */
-                                                                                              /* used to build individual trees. */);
 
-            cls.train(ps);
-
-            double trainModelPrecision;
-            cls.validate(ldata, out trainModelPrecision);
-
-            Console.WriteLine("Model precision on training dataset: " + trainModelPrecision);
-            return cls;
-
-        }
-
-        public Classifiers.IClassifier learn_random_forest_on_grid(Func<double[], double> meFunc, Func<double[], double[]> calcDerivative, double allowErr)
+        /*public Classifiers.IClassifier learn_random_forest_on_grid(Func<double[], double> meFunc, Func<double[], double[]> calcDerivative, double allowErr)
         {
 
             Console.WriteLine("MN " + M + " " + N );
@@ -398,22 +368,26 @@ namespace Solver
                 ldata[i] = new Classifiers.LabeledData(features, pointClass);
                 featureCount = features.Length;
             }
+<<<<<<< HEAD
             //for(int i = 0; i < xf.Length; i++)
             //{
             //    double[] feature = build_fetures_from_existing_points(i, calcDerivative);
             //    ldata[grid.Node.Length + i] = new Classifiers.LabeledData(feature, 0);
             //    featureCount = feature.Length;
             //}
+=======
+
+>>>>>>> 27c7b8e455fc6dcbe52d139e126e81ef3190f90c
 
 
             Classifiers.IClassifier cls = new Classifiers.RandomForest();
-            Classifiers.RandomForestParams ps = new Classifiers.RandomForestParams(ldata, n   /* samples count */,
-                                                                                          featureCount   /* features count */,
-                                                                                          2   /* classes count */,
-                                                                                          100   /* trees count */,
-                                                                                          1   /* count of features to do split in a tree */,
-                                                                                          0.7 /* percent of a training set of samples  */
-                                                                                              /* used to build individual trees. */);
+            Classifiers.RandomForestParams ps = new Classifiers.RandomForestParams(ldata, n   ,
+                                                                                          featureCount   ,
+                                                                                          2   ,
+                                                                                          100  ,
+                                                                                          1   ,
+                                                                                          0.7 
+                                                                                              );
 
             cls.train(ps);
             double trainModelPrecision;
@@ -435,7 +409,7 @@ namespace Solver
 
             //Console.WriteLine("Model precision on training dataset: " + trainModelPrecision);
             return cls;
-        }
+        }*/
 
         public Analyzer(IFunction func, double[][] xf, int[] count)
         {
@@ -462,7 +436,7 @@ namespace Solver
            // Console.WriteLine("Разбиение пространства на домены");
             Queue<int> queue = new Queue<int>();
             domain = new int[grid.Node.Length];
-            double[] dist = new double[grid.Node.Length];
+            dist = new double[grid.Node.Length];
             for (int i = 0; i < domain.Length; i++)
             {
                 domain[i] = -1;

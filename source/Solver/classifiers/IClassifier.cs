@@ -33,7 +33,7 @@ namespace Classifiers
     public interface IClassifier
     {
         void train(AClassifierParams param);
-        void infer(double[] x, out int label);
+        void infer(double[] x, out Object label);
         void validate(LabeledData[] XY, out double modelPrecision);
     }
 }

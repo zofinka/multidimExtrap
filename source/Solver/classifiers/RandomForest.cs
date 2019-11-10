@@ -71,7 +71,7 @@ namespace Classifiers
             }
         }
 
-        public void infer(double[] x, out int label)
+        public void infer(double[] x, out Object label)
         {
             // alglib.dfprocess outputs vector of possibilities for the classes of given data.
             double[] yp  = new double[param.NClasses];
