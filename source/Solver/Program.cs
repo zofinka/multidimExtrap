@@ -23,13 +23,17 @@ namespace Solver
             //Test defTest = new TestDefWay();
             //defTest.run();
 
-            Test randomForestTest;
-            randomForestTest = new TestRandomForestBestAprxClass();
+  //          Test randomForestTest;
+ //           randomForestTest = new TestRandomForestBestAprxClass();
             //randomForestTest.run();
 
 
             //randomForestTest = new TestRandomForestLearnAndDoOnOne();
-            randomForestTest.run();
+//            randomForestTest.run();
+
+
+            Test dichTest = new TestDichotomy();
+            dichTest.run();
 #endregion
 
 //#endif

@@ -44,6 +44,14 @@ namespace Solver
             analyse_error();
         }
 
+        public void do_dichotomy_analyse()
+        {
+            int[] count = new int[N]; for (int i = 0; i < N; i++) count[i] = (Min[i] == Max[i]) ? 1 : NGRID;
+            create_grid(count);
+            analyse_voronoi();
+            analyse_with_dichotomy();
+        }
+
         public int getGoodPr(Func<double[], double> meFunc, float allowErr)
         {
             int prGoodRes = 0;
@@ -675,6 +683,33 @@ namespace Solver
                 for (int j = N; j < N + M; j++) xfcandidates[i][j] = 0;
             }
             Console.WriteLine("Процесс расчета закончен успешно");
+        }
+
+        private void analyse_with_dichotomy()
+        {
+            List<double[]> middles = new List<double[]>();
+
+            for (int i = 0; i < xf.Length; ++i)
+            {
+                foreach (var n in graph[i])
+                {
+                    if (n != i)
+                    {
+                        double[] middle = new double[xf[i].Length];
+                        for (int j = 0; j < xf[i].Length; ++j)
+                        {
+                            middle[j] = (xf[i][j] + xf[n][j]) / 2.0;
+                        }
+
+                        if (!middles.Contains(middle))
+                        {
+                            middles.Add(middle);
+                        }
+                    }
+                }
+            }
+
+            xfcandidates = middles.ToArray();
         }
 
         private void analyse_all_error()
