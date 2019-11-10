@@ -63,7 +63,7 @@ namespace Solver
 
             Shepard model = new Shepard(parser.FunctionDimension, points.ToArray());
             Analyzer analyzer = new Analyzer(model, points.ToArray());
-            Classifiers.IClassifier cls = analyzer.learn_random_forest_on_grid(func, derivativeFunc, parser.Approximation);
+            MLAlgorithms.IMLAlgorithm cls = analyzer.learn_random_forest_on_grid(func, derivativeFunc, parser.Approximation);
 
             double[][] pointsArray = new double[parser.PointAmount][];
             pointAmount = pointsArray.Length;
@@ -248,7 +248,7 @@ namespace Solver
 
             Shepard model = new Shepard(parserToLearn.FunctionDimension, pointsToLearn.ToArray());
             Analyzer analyzer = new Analyzer(model, pointsToLearn.ToArray());
-            Classifiers.IClassifier cls = analyzer.learn_random_forest_on_grid(funcToLearn, derivativeFuncToLearn, parserToLearn.Approximation);
+            MLAlgorithms.IMLAlgorithm cls = analyzer.learn_random_forest_on_grid(funcToLearn, derivativeFuncToLearn, parserToLearn.Approximation);
 
             Parser parser = new Parser(configFile, pointFile);
             int pointAmount = parser.PointAmount;
@@ -520,12 +520,12 @@ namespace Solver
     }
 
     class ClassifierTest
-    {
+    { 
         public double runOnDAALDataset()
         {
-            Func<string, int, Classifiers.LabeledData[]> parseDataSet = delegate (string path, int count)
+            Func<string, int, MLAlgorithms.LabeledData[]> parseDataSet = delegate (string path, int count)
             {
-                Classifiers.LabeledData[] data = new Classifiers.LabeledData[count];
+                MLAlgorithms.LabeledData[] data = new MLAlgorithms.LabeledData[count];
 
                 using (StreamReader fs = new StreamReader(path))
                 {
@@ -533,9 +533,9 @@ namespace Solver
                     {
                         string[] vals = fs.ReadLine().Split(',');
                         double[] features = { Double.Parse(vals[0]), Double.Parse(vals[1]), Double.Parse(vals[2]) };
-                        int label = Int32.Parse(vals[3]);
+                        Int32 label = Int32.Parse(vals[3]);
 
-                        data[i] = new Classifiers.LabeledData(features, label);
+                        data[i] = new MLAlgorithms.LabeledData(features, label);
                     }
                 }
 
@@ -543,11 +543,11 @@ namespace Solver
             };
 
             var trainDataCount = 100000;
-            var trainDataSet = parseDataSet("..//..//..//test_classifier//df_classification_train.csv", trainDataCount);
+            var trainDataSet = parseDataSet("..//..//..//test_df//df_classification_train.csv", trainDataCount);
 
-            Classifiers.IClassifier cls = new Classifiers.RandomForest();
+            MLAlgorithms.IMLAlgorithm cls = new MLAlgorithms.RandomForest();
 
-            Classifiers.RandomForestParams ps = new Classifiers.RandomForestParams(trainDataSet,
+            MLAlgorithms.RandomForestParams ps = new MLAlgorithms.RandomForestParams(trainDataSet,
                                                                                    trainDataCount /* samples count */,
                                                                                    3              /* features count */,
                                                                                    5              /* classes count */,
@@ -556,26 +556,79 @@ namespace Solver
                                                                                    0.7            /* percent of a training set of samples  */
                                                                                                   /* used to build individual trees. */);
 
-            cls.train(ps);
+            cls.train<int>(ps);
 
             double trainPrecision;
-            cls.validate(trainDataSet, out trainPrecision);
+            cls.validate<int>(trainDataSet, out trainPrecision);
 
             var testDataCount = 1000;
-            var testDataSet = parseDataSet("..//..//..//test_classifier//df_classification_test.csv", testDataCount);
+            var testDataSet = parseDataSet("..//..//..//test_df//df_classification_test.csv", testDataCount);
 
             double testPrecision;
-            cls.validate(testDataSet, out testPrecision);
+            cls.validate<int>(testDataSet, out testPrecision);
 
             Console.WriteLine("Model precision on train DAAL dataset is " + trainPrecision);
             Console.WriteLine("Model precision on test DAAL dataset is " + testPrecision);
 
             return testPrecision;
         }
+    }
 
-        public bool runOnSimpleFunction()
+    class RegressorTest
+    {
+        public double runOnDAALDataset()
         {
-            return true;
+            Func<string, int, MLAlgorithms.LabeledData[]> parseDataSet = delegate (string path, int count)
+            {
+                MLAlgorithms.LabeledData[] data = new MLAlgorithms.LabeledData[count];
+
+                using (StreamReader fs = new StreamReader(path))
+                {
+                    for (var i = 0; i < count; ++i)
+                    {
+                        string[] vals = fs.ReadLine().Split(',');
+                        double[] features = { Double.Parse(vals[0]), Double.Parse(vals[1]), Double.Parse(vals[2]),
+                                            Double.Parse(vals[3]), Double.Parse(vals[4]), Double.Parse(vals[5]),
+                                            Double.Parse(vals[6]), Double.Parse(vals[7]), Double.Parse(vals[8]),
+                                            Double.Parse(vals[9]), Double.Parse(vals[10]), Double.Parse(vals[11])};
+                        Double label = Double.Parse(vals[12]);
+
+                        data[i] = new MLAlgorithms.LabeledData(features, label);
+                    }
+                }
+
+                return data;
+            };
+
+            var trainDataCount = 380;
+            var trainDataSet = parseDataSet("..//..//..//test_df//df_regression_train.csv", trainDataCount);
+
+            MLAlgorithms.IMLAlgorithm rg = new MLAlgorithms.RandomForest();
+
+            MLAlgorithms.RandomForestParams ps = new MLAlgorithms.RandomForestParams(trainDataSet,
+                                                                                   trainDataCount /* samples count */,
+                                                                                   12             /* features count */,
+                                                                                   1              /* classes count */,
+                                                                                   50             /* trees count */,
+                                                                                   7              /* count of features to do split in a tree */,
+                                                                                   0.65           /* percent of a training set of samples  */
+                                                                                                  /* used to build individual trees. */);
+
+            rg.train<double>(ps);
+
+            double trainPrecision;
+            rg.validate<double>(trainDataSet, out trainPrecision);
+
+            var testDataCount = 127;
+            var testDataSet = parseDataSet("..//..//..//test_df//df_regression_test.csv", testDataCount);
+
+            double testPrecision;
+            rg.validate<double>(testDataSet, out testPrecision);
+
+            Console.WriteLine("Model precision on train DAAL dataset is " + trainPrecision);
+            Console.WriteLine("Model precision on test DAAL dataset is " + testPrecision);
+
+            return testPrecision;
         }
     }
 }

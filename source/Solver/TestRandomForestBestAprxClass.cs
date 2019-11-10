@@ -9,7 +9,7 @@ namespace Solver
     class TestRandomForestBestAprxClass: Test
     {
         int featureCount = 0;
-        List<Classifiers.LabeledData> ldata = new List<Classifiers.LabeledData>();
+        List<MLAlgorithms.LabeledData> ldata = new List<MLAlgorithms.LabeledData>();
         int TreesCount = 100;
         double THRESHOLD = 1;
 
@@ -20,11 +20,11 @@ namespace Solver
             int interAmount = 0;
             Tests.IFunction[] functions = new Tests.IFunction[1] { new Tests.SinXCosY() };
             collect_samples(functions);
-            Classifiers.IClassifier cls = get_cls();
+            MLAlgorithms.IMLAlgorithm rg = get_rg();
 
             Tests.SinXCosXCosY SinXCosY = new Tests.SinXCosXCosY();
             Console.WriteLine(SinXCosY.name + " Test START");
-            interAmount = test(cls, SinXCosY);
+            interAmount = test(rg, SinXCosY);
             Console.WriteLine(SinXCosY.name + " Test END in " + interAmount + " iterations");
 
             /*Tests.SinXCosXCosY SinXCosXCosY = new Tests.SinXCosXCosY();
@@ -39,7 +39,7 @@ namespace Solver
 
         }
 
-        public int test(Classifiers.IClassifier cls, Tests.IFunction function)
+        public int test(MLAlgorithms.IMLAlgorithm rg, Tests.IFunction function)
         {
 
             Parser parserToLearn = new Parser(function.configFile, function.pointFile);
@@ -58,7 +58,7 @@ namespace Solver
             {
                 Shepard model = new Shepard(parser.FunctionDimension, points);
                 Analyzer analyzer = new Analyzer(model, points);
-                analyzer.do_random_forest_analyse(cls, build_features);
+                analyzer.do_random_forest_analyse(rg, build_features);
 
                 double[][] xx = analyzer.Result;
                 int newPointsAmount = Math.Min(parser.PredictionPointAmount, xx.Length);
@@ -101,26 +101,26 @@ namespace Solver
             return i;
         } 
 
-        private Classifiers.IClassifier get_cls()
+        private MLAlgorithms.IMLAlgorithm get_rg()
         {
-            Classifiers.IClassifier cls = new Classifiers.RandomForest();
+            MLAlgorithms.IMLAlgorithm ml = new MLAlgorithms.RandomForest();
 
-            Classifiers.RandomForestParams ps = new Classifiers.RandomForestParams(ldata.ToArray(), ldata.Count   /* samples count */,
-                                                                                featureCount   /* features count */,
-                                                                                2   /* classes count */,
-                                                                                TreesCount   /* trees count */,
-                                                                                1   /* count of features to do split in a tree */,
-                                                                                0.7 /* percent of a training set of samples  */
-                                                                                    /* used to build individual trees. */);
+            MLAlgorithms.RandomForestParams ps = new MLAlgorithms.RandomForestParams(ldata.ToArray(), ldata.Count   /* samples count */,
+                                                                                     featureCount   /* features count */,
+                                                                                     1   /* classes count */,
+                                                                                     TreesCount   /* trees count */,
+                                                                                     1   /* count of features to do split in a tree */,
+                                                                                     0.7 /* percent of a training set of samples  */
+                                                                                         /* used to build individual trees. */);
 
-            cls.train(ps);
+            ml.train<double>(ps);
 
             double trainModelPrecision;
-            cls.validate(ldata.ToArray(), out trainModelPrecision);
+            ml.validate<double>(ldata.ToArray(), out trainModelPrecision);
 
             Console.WriteLine("Model precision on training dataset: " + trainModelPrecision);
 
-            return cls;
+            return ml;
         }
 
         private void analyze_points()
@@ -286,7 +286,7 @@ namespace Solver
                 if (p[p.Length - 1] < THRESHOLD)
                 {
                     double[] feature = build_features(p, def_model, grid, dist);
-                    ldata.Add(new Classifiers.LabeledData(feature, 0));
+                    ldata.Add(new MLAlgorithms.LabeledData(feature, 0));
                 }
             }
         }
@@ -316,7 +316,7 @@ namespace Solver
                 if (!eql)
                 {
                     double[] feature = build_features(grid.Node[i], def_model, grid, dist);
-                    ldata.Add(new Classifiers.LabeledData(feature, 0));
+                    ldata.Add(new MLAlgorithms.LabeledData(feature, 0));
                 }
             }
             
@@ -337,7 +337,7 @@ namespace Solver
                 if (p[p.Length - 1] < THRESHOLD)
                 {
                     double[] feature = build_features(p, def_model, grid, dist);
-                    ldata.Add(new Classifiers.LabeledData(feature, 0));
+                    ldata.Add(new MLAlgorithms.LabeledData(feature, 0));
                     good_point++;
                 }
             }
@@ -346,7 +346,7 @@ namespace Solver
                 if (p[p.Length - 1] > THRESHOLD)
                 {
                     double[] feature = build_features(p, def_model, grid, dist);
-                    ldata.Add(new Classifiers.LabeledData(feature, 1));
+                    ldata.Add(new MLAlgorithms.LabeledData(feature, 1));
                     bad_point++;
                 }
                 if (bad_point == good_point)

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Solver
 {
-namespace Classifiers
+namespace MLAlgorithms
 {
     public struct LabeledData
     {
@@ -19,22 +19,22 @@ namespace Classifiers
             this.label = label;
         }
     }
-    public abstract class AClassifierParams
+    public abstract class AMLAlgorithmParams
     {
         // Training set
         public LabeledData[] XY { get; set; }
 
-        public AClassifierParams(LabeledData[] xy)
+        public AMLAlgorithmParams(LabeledData[] xy)
         {
             XY = xy;
         }
     }
 
-    public interface IClassifier
+    public interface IMLAlgorithm
     {
-        void train(AClassifierParams param);
+        void train<T>(AMLAlgorithmParams param);
         void infer(double[] x, out Object label);
-        void validate(LabeledData[] XY, out double modelPrecision);
+        void validate<T>(LabeledData[] XY, out double modelPrecision) where T : IComparable;
     }
 }
 }

@@ -1589,7 +1589,7 @@ public partial class alglib
     RESULT:
         percent of incorrectly classified cases. Works both for
         classifier networks and general purpose networks used as
-        classifiers.
+        MLAlgorithms.
 
       -- ALGLIB --
          Copyright 25.12.2008 by Bochkanov Sergey
@@ -3506,7 +3506,7 @@ public partial class alglib
     RESULT:
         percent of incorrectly classified cases.
         Works both for classifier betwork and for regression networks which
-    are used as classifiers.
+    are used as MLAlgorithms.
 
       -- ALGLIB --
          Copyright 17.02.2009 by Bochkanov Sergey
@@ -11245,7 +11245,7 @@ public partial class alglib
         RESULT:
             percent of incorrectly classified cases. Works both for
             classifier networks and general purpose networks used as
-            classifiers.
+            MLAlgorithms.
 
           -- ALGLIB --
              Copyright 25.12.2008 by Bochkanov Sergey
@@ -12489,7 +12489,7 @@ public partial class alglib
             biased summator         | output layer:
             ...                     |
             biased summator         | * we have NOut summators/activators for regression networks
-            activation function     | * we have only NOut-1 summators and no activators for classifiers
+            activation function     | * we have only NOut-1 summators and no activators for MLAlgorithms
             ...                     | * we have "0" neuron only when we have classifier
             activation function     |
             "0" neuron              /
@@ -18874,7 +18874,7 @@ public partial class alglib
         RESULT:
             percent of incorrectly classified cases.
             Works both for classifier betwork and for regression networks which
-        are used as classifiers.
+        are used as MLAlgorithms.
 
           -- ALGLIB --
              Copyright 17.02.2009 by Bochkanov Sergey
