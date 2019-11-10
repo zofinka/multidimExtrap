@@ -8,9 +8,14 @@ namespace Solver
 {
     class TestRandomForestLearnAndDoOnOne: Test
     {
+        const int NGRID = 100;
+        int featureCount = 0;
+
         public override void run()
         {
-            int interAmount;
+            int interAmount = 0;
+            Tests.IFunction[] functions = new Tests.IFunction[1] { new Tests.SinXCosY() };
+            Classifiers.IClassifier cls = get_cls(functions);
 
             /*Console.WriteLine("Square Area Function Test START");
             interAmount = testWithRandomForest(Tests.SquareArea.config, Tests.SquareArea.config, Tests.SquareArea.func, Tests.SquareArea.derivative);
@@ -22,7 +27,7 @@ namespace Solver
 
             Tests.SinXCosY SinXCosY = new Tests.SinXCosY();
             Console.WriteLine("Test " + SinXCosY.name + " START");
-            interAmount = test(SinXCosY.configFile, SinXCosY.pointFile, SinXCosY.func, SinXCosY.derivative);
+            interAmount = test(cls, SinXCosY.configFile, SinXCosY.pointFile, SinXCosY.func, SinXCosY.derivative);
             Console.WriteLine("Test " + SinXCosY.name + " END in " + interAmount + " iterations");
 
             /*Console.WriteLine(Tests.SinXCosXCosY.name +  " Test START");
@@ -34,56 +39,32 @@ namespace Solver
             Console.WriteLine(Tests.SinFromSumOnSum.name + " Test END in " + interAmount + " iterations");*/
         }
 
-        private int test(string configFile, string pointFile, Func<double[], double> func, Func<double[], double[]> derivativeFunc)
+        private int test(Classifiers.IClassifier cls, string configFile, string pointFile, Func<double[], double> func, Func<double[], double[]> derivativeFunc)
         {
             Parser parser = new Parser(configFile, pointFile);
-            List<double[]> points = new List<double[]>();
-            points = parser.Points.ToList();
-
-            for (int j = 0; j < 1; j++)
-            {
-                points.AddRange(testDefWayUntilGood(parser, points.ToArray(), func).ToList<double[]>());
-            }
-
-
-            int pointAmount = points.Count;
-
-            Shepard model = new Shepard(parser.FunctionDimension, points.ToArray());
-            Analyzer analyzer = new Analyzer(model, points.ToArray());
-            Classifiers.IClassifier cls = analyzer.learn_random_forest_on_grid(func, derivativeFunc, parser.Approximation);
-
-            double[][] pointsArray = new double[parser.PointAmount][];
-            pointAmount = pointsArray.Length;
-            for (int j = 0; j < parser.PointAmount; j++)
-            {
-                pointsArray[j] = (double[])parser.Points[j].Clone();
-            }
+            double[][] pointsArray = parser.Points.ToList().ToArray();
+            int pointAmount = pointsArray.Length;
 
             int i = 0;
             double maxErr = 10;
             while (i < 100000000 && maxErr > parser.Approximation)
             {
-                model = new Shepard(parser.FunctionDimension, pointsArray);
-                analyzer = new Analyzer(model, pointsArray);
-                analyzer.do_random_forest_analyse(cls, parser.Approximation, func, derivativeFunc);
+                Shepard model = new Shepard(parser.FunctionDimension, pointsArray);
+                Analyzer analyzer = new Analyzer(model, pointsArray);
+                analyzer.do_random_forest_analyse(cls, build_features);
 
                 double[][] xx = analyzer.Result;
                 int newPointsAmount = Math.Min(parser.PredictionPointAmount, xx.Length);
                 pointAmount = pointAmount + newPointsAmount;
-                double[][] newPoints = new double[pointAmount][];
-                for (int j = 0; j < pointAmount; j++)
+                List<double[]> newPoints = new List<double[]>();
+                newPoints = pointsArray.ToList();
+                for (int j = 0; j < newPointsAmount; j++)
                 {
-                    if (j < pointAmount - newPointsAmount)
-                    {
-                        newPoints[j] = (double[])pointsArray[j].Clone();
-                    }
-                    else
-                    {
-                        newPoints[j] = (double[])xx[j - pointAmount + newPointsAmount].Clone();
-                        newPoints[j][parser.FunctionDimension] = func(newPoints[j]);
-                    }
+                    double[] new_point = (double[])xx[j].Clone();
+                    new_point[parser.FunctionDimension] = func(new_point);
+                    newPoints.Add(new_point);
                 }
-                pointsArray = newPoints;
+                pointsArray = newPoints.ToArray();
 
 
                 double[][] new_points = new double[newPointsAmount][];
@@ -109,8 +90,145 @@ namespace Solver
                 i++;
             }
             testResult(parser.FunctionDimension, pointsArray, func);
-            Console.WriteLine(" Avg err " + calc_err(func, points.ToList(), parser));
+            Console.WriteLine(" Avg err " + calc_err(func, pointsArray.ToList(), parser));
             return i;
+        }
+
+        private Classifiers.IClassifier get_cls(Tests.IFunction[] functions)
+        {
+            Classifiers.LabeledData[] ldata = collect_samples(functions);
+            Classifiers.IClassifier cls = new Classifiers.RandomForest();
+            Classifiers.RandomForestParams ps = new Classifiers.RandomForestParams(ldata, ldata.Length   /* samples count */,
+                                                                                          featureCount   /* features count */,
+                                                                                          2   /* classes count */,
+                                                                                          100   /* trees count */,
+                                                                                          1   /* count of features to do split in a tree */,
+                                                                                          0.7 /* percent of a training set of samples  */
+                                                                                              /* used to build individual trees. */);
+
+            cls.train(ps);
+            return cls;
+        }
+
+        private double[] build_features(double[] point, IFunction model, Grid grid, double[] distToKnownPoints, double[][] knownPoints = null, int index = -1)
+        {
+            this.featureCount = 4;
+
+            // min, max in locality
+            double maxNeighbours = double.MinValue;
+            double minNeighbours = double.MaxValue;
+            foreach (var neighbour in grid.Neighbours(index))
+            {
+                double[] calcNeighbour = (double[])grid.Node[neighbour].Clone();
+                model.Calculate(calcNeighbour);
+                if (calcNeighbour[calcNeighbour.Length - 1] < minNeighbours)
+                {
+                    minNeighbours = calcNeighbour[calcNeighbour.Length - 1];
+                }
+                if (calcNeighbour[calcNeighbour.Length - 1] > maxNeighbours)
+                {
+                    maxNeighbours = calcNeighbour[calcNeighbour.Length - 1];
+                }
+            }
+            // current val
+            double[] cuurentNode = (double[])grid.Node[index].Clone();
+            model.Calculate(cuurentNode);
+            double cuurentNodeVal = cuurentNode[cuurentNode.Length - 1];
+            if (cuurentNodeVal < minNeighbours)
+            {
+                minNeighbours = cuurentNodeVal;
+            }
+            if (cuurentNodeVal > maxNeighbours)
+            {
+                maxNeighbours = cuurentNodeVal;
+            }
+
+            List<double[]> temp_points = new List<double[]>();
+            temp_points = knownPoints.ToList();
+            temp_points.Add((double[])grid.Node[index].Clone());
+            Shepard new_model = new Shepard(model.N, temp_points.ToArray());
+            temp_points.RemoveAt(temp_points.Count - 1);
+
+            // build features vector
+            double[] features = new double[featureCount];
+            //features[0] = Math.Abs(cuurentNodeVal - maxNeighbours);
+            //features[1] = Math.Abs(minNeighbours - cuurentNodeVal);
+            features[0] = maxNeighbours - cuurentNodeVal;
+            features[1] = cuurentNodeVal - minNeighbours;
+            features[2] = distToKnownPoints[index];
+            features[3] = check_new_aproximation((Shepard)model, new_model, grid, index);
+
+            return features;
+        }
+
+        private Classifiers.LabeledData[] collect_samples(Tests.IFunction[] functions)
+        {
+            List<Classifiers.LabeledData> ldata = new List<Classifiers.LabeledData>();
+            foreach (Tests.IFunction f in functions)
+            {
+                Parser p = new Parser(f.configFile, f.pointFile);
+                int j = 0;
+                while (j < 1)
+                {
+                    List<double[]> points = get_start_points(j, p, f.func);
+
+                    for (int k = 0; k < 1; k++)
+                    {
+                        points.AddRange(testDefWayUntilGood(p, points.ToArray(), f.func).ToList<double[]>()); 
+                    }
+
+                    Shepard def_model = new Shepard(p.FunctionDimension, points.ToArray());
+                    int[] count = new int[p.FunctionDimension]; for (int i = 0; i < p.FunctionDimension; i++) count[i] = (def_model.Min[i] == def_model.Max[i]) ? 1 : NGRID;
+                    Grid grid = new Grid(def_model.N, def_model.M, def_model.Min, def_model.Max, count);
+                    double[] dist = update_path_to_knowing_points(grid, points.ToArray(), p.FunctionDimension);
+
+                    int n = grid.Node.Length;
+                    for (int i = 0; i < grid.Node.Length; i++)
+                    {
+                        double[] cuurentNode = (double[])grid.Node[i].Clone();
+                        def_model.Calculate(cuurentNode);
+                        double cuurentNodeVal = cuurentNode[cuurentNode.Length - 1];
+
+                        int pointClass = 0;
+                        if (Math.Abs(f.func(grid.Node[i]) - cuurentNodeVal) > p.Approximation)
+                        {
+                            pointClass = 1;
+                        }
+
+                        double[] features = build_features(grid.Node[i], def_model, grid, dist, points.ToArray(), i);
+                        ldata.Add(new Classifiers.LabeledData(features, pointClass));
+                        featureCount = features.Length;
+                    }
+
+                    j++;
+                }
+
+            }
+            return ldata.ToArray();
+        }
+
+        private List<double[]> get_start_points(int i, Parser parser, Func<double[], double> func)
+        {
+            if (i == 0)
+            {
+                return parser.Points.ToList();
+            }
+            else
+            {
+                List<double[]> points = new List<double[]>();
+                Random random = new Random();
+                for (int j = 0; j < parser.Points.Length; j++)
+                {
+                    double[] point = new double[parser.FunctionDimension + 1];
+                    for (int k = 0; k < parser.FunctionDimension; k++)
+                    {
+                        point[k] = random.NextDouble() * (parser.Max[k] - parser.Min[k]) + parser.Min[k];
+                    }
+                    point[parser.FunctionDimension] = func(point);
+                    points.Add(point);
+                }
+                return points;
+            }
         }
 
     }

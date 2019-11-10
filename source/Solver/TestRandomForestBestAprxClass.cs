@@ -63,20 +63,15 @@ namespace Solver
                 double[][] xx = analyzer.Result;
                 int newPointsAmount = Math.Min(parser.PredictionPointAmount, xx.Length);
                 pointAmount = pointAmount + newPointsAmount;
-                double[][] newPoints = new double[pointAmount][];
-                for (int j = 0; j < pointAmount; j++)
+                List<double[]> newPoints = new List<double[]>();
+                newPoints = points.ToList();
+                for (int j = 0; j < newPointsAmount; j++)
                 {
-                    if (j < pointAmount - newPointsAmount)
-                    {
-                        newPoints[j] = (double[])points[j].Clone();
-                    }
-                    else
-                    {
-                        newPoints[j] = (double[])xx[j - pointAmount + newPointsAmount].Clone();
-                        newPoints[j][parser.FunctionDimension] = function.func(newPoints[j]);
-                    }
+                    double[] new_point = (double[])xx[j].Clone();
+                    new_point[parser.FunctionDimension] = function.func(new_point);
+                    newPoints.Add(new_point);
                 }
-                points = newPoints;
+                points = newPoints.ToArray();
 
 
                 double[][] new_points = new double[newPointsAmount][];
@@ -128,6 +123,11 @@ namespace Solver
             return cls;
         }
 
+        private void analyze_points()
+        {
+
+        }
+
         private void collect_samples(Tests.IFunction[] functions)
         {
             foreach (Tests.IFunction f in functions)
@@ -142,8 +142,8 @@ namespace Solver
                     while (i < 25 && err > p.Approximation)
                     {
                         List<double[]> new_points = get_best_points(points.ToArray(), p);
-                        //update_samples(new_points, p);
-                        update_good_samples(new_points, p);
+                        update_samples(new_points, p);
+                        //update_good_samples(new_points, p);
 
                         List<double[]> new_best_points = get_first_best_points(new_points.ToArray(), p.FunctionDimension);
 
@@ -157,7 +157,7 @@ namespace Solver
                         err = calc_err(f.func, points, p);
                         i++;
                     }
-                    update_bad_samples(points, p);
+                    //update_bad_samples(points, p);
                     j++;
                 }
                 
@@ -223,48 +223,17 @@ namespace Solver
 
         }
 
-        private double calc_err(Func<double[], double> func, List<double[]> points, Parser parser)
-        {
-            // TODO add calc by integrall
-            Shepard def_model = new Shepard(parser.FunctionDimension, points.ToArray());
-            int[] count = new int[def_model.N];
-            for (int i = 0; i < def_model.N; i++) count[i] = (def_model.Min[i] == def_model.Max[i]) ? 1 : NGRID;
-            Grid grid = new Grid(def_model.N, def_model.M, def_model.Min, def_model.Max, count);
-            double sum = 0;
-            int numInSum = 0;
-            for (int i = 0; i < grid.Node.Length; i++)
-            {
-                bool in_range = true;
-                for (int j = 0; j < grid.Node[i].Length - 1; j++)
-                {
-                    if (grid.Node[i][j] > def_model.Max[j] || grid.Node[i][j] < def_model.Min[j])
-                    {
-                        in_range = false;
-                    }
-                }
-                if (in_range)
-                {
-                    double[] grid_node = (double[])grid.Node[i].Clone();
-                    def_model.Calculate(grid_node);
-                    double realFunctionVal = func(grid.Node[i]);
-                    sum += Math.Abs(grid_node[grid_node.Length - 1] - realFunctionVal);
-                    numInSum++;
-                }
-            }
+        
 
-            return (double)sum / numInSum;
-        }
-
-        private double[] build_features(double[] point, IFunction model, Grid grid)
+        private double[] build_features(double[] point, IFunction model, Grid grid, double[] distToKnownPoints, double[][] knownPoints = null, int index = -1)
         {
-            featureCount = 2;
+            featureCount = 3;
             double[] features = new double[featureCount];
             // min, max in locality
             double maxNeighboursVal = double.MinValue;
             double[] maxNeighbours = new double[point.Length];
             double minNeighboursVal = double.MaxValue;
             double[] minNeighbours = new double[point.Length];
-            int index;
             grid.ToIndex(point, out index);
             foreach (var neighbour in grid.Neighbours(index))
             {
@@ -298,10 +267,10 @@ namespace Solver
             features[0] = Math.Abs(curentNodeVal - maxNeighboursVal);
           //  features[1] = distanceX(curentNode, maxNeighbours, model.N);
             features[1] = Math.Abs(curentNodeVal - minNeighboursVal);
-          //  features[3] = distanceX(curentNode, maxNeighbours, model.N);
+           // features[2] = distToKnownPoints[index];
+            //  features[3] = distanceX(curentNode, maxNeighbours, model.N);
 
             return features;
-
         }
 
         private void update_good_samples(List<double[]> points, Parser paraser)
@@ -311,11 +280,12 @@ namespace Solver
             int[] count = new int[def_model.N];
             for (int i = 0; i < def_model.N; i++) count[i] = (def_model.Min[i] == def_model.Max[i]) ? 1 : NGRID;
             Grid grid = new Grid(def_model.N, def_model.M, def_model.Min, def_model.Max, count);
+            double[] dist = update_path_to_knowing_points(grid, points.ToArray(), paraser.FunctionDimension);
             foreach (double[] p in points)
             {
                 if (p[p.Length - 1] < THRESHOLD)
                 {
-                    double[] feature = build_features(p, def_model, grid);
+                    double[] feature = build_features(p, def_model, grid, dist);
                     ldata.Add(new Classifiers.LabeledData(feature, 0));
                 }
             }
@@ -328,7 +298,7 @@ namespace Solver
             int[] count = new int[def_model.N];
             for (int i = 0; i < def_model.N; i++) count[i] = (def_model.Min[i] == def_model.Max[i]) ? 1 : NGRID;
             Grid grid = new Grid(def_model.N, def_model.M, def_model.Min, def_model.Max, count);
-
+            double[] dist = update_path_to_knowing_points(grid, points.ToArray(), parser.FunctionDimension);
             for (int i = 0; i < grid.Node.Length; i++)
             {
                 bool eql = true;
@@ -345,7 +315,7 @@ namespace Solver
                 }
                 if (!eql)
                 {
-                    double[] feature = build_features(grid.Node[i], def_model, grid);
+                    double[] feature = build_features(grid.Node[i], def_model, grid, dist);
                     ldata.Add(new Classifiers.LabeledData(feature, 0));
                 }
             }
@@ -361,11 +331,12 @@ namespace Solver
             int[] count = new int[def_model.N];
             for (int i = 0; i < def_model.N; i++) count[i] = (def_model.Min[i] == def_model.Max[i]) ? 1 : NGRID;
             Grid grid = new Grid(def_model.N, def_model.M, def_model.Min, def_model.Max, count);
+            double[] dist = update_path_to_knowing_points(grid, points.ToArray(), paraser.FunctionDimension);
             foreach (double[] p in points)
             {
                 if (p[p.Length - 1] < THRESHOLD)
                 {
-                    double[] feature = build_features(p, def_model, grid);
+                    double[] feature = build_features(p, def_model, grid, dist);
                     ldata.Add(new Classifiers.LabeledData(feature, 0));
                     good_point++;
                 }
@@ -374,7 +345,7 @@ namespace Solver
             {
                 if (p[p.Length - 1] > THRESHOLD)
                 {
-                    double[] feature = build_features(p, def_model, grid);
+                    double[] feature = build_features(p, def_model, grid, dist);
                     ldata.Add(new Classifiers.LabeledData(feature, 1));
                     bad_point++;
                 }
@@ -424,58 +395,10 @@ namespace Solver
             return new_points;
         }
 
-        private double check_new_aproximation(Shepard old_model, Shepard new_model, Grid grid, int nodeNum)
-        {
-            // TODO add calc by integrall
-            double sum = 0;
-            int numInSum = 1;
-            foreach (var neighbour in grid.Neighbours(nodeNum))
-            // for (int i = 0; i < grid.Node.Length; i++)
-            {
-                bool in_range = true;
-                /*for (int j = 0; j < grid.Node[i].Length - 1; j++)
-                {
-                    if (grid.Node[i][j] > old_model.Max[j] || grid.Node[i][j] < old_model.Min[j])
-                    {
-                        in_range = false;
-                    }
-                }*/
+       
 
-                for (int j = 0; j < grid.Node[neighbour].Length - 1; j++)
-                {
-                    if (grid.Node[neighbour][j] > old_model.Max[j] || grid.Node[neighbour][j] < old_model.Min[j])
-                    {
-                        in_range = false;
-                    }
-                }
-                if (in_range)
-                {
-                    //double[] old_grid_node = (double[])grid.Node[i].Clone();
-                    double[] old_grid_node = (double[])grid.Node[neighbour].Clone();
-                    old_model.Calculate(old_grid_node);
-                    //double[] new_grid_node = (double[])grid.Node[i].Clone();
-                    double[] new_grid_node = (double[])grid.Node[neighbour].Clone();
-                    new_model.Calculate(new_grid_node);
-                    sum += Math.Abs(old_grid_node[old_grid_node.Length - 1] - new_grid_node[new_grid_node.Length - 1]);
-                    numInSum++;
-                }
-            }
-            
-            return (double)sum / numInSum;
-        }
 
-        public double distanceX(double[] a, double[] b, int N)
-        {
-            double dist = 0;
-            for (int i = 0; i < N; i++) dist += (a[i] - b[i]) * (a[i] - b[i]);
-            return Math.Sqrt(dist);
-        }
 
-        public double distanceF(double[] a, double[] b, int N, int M)
-        {
-            double dist = 0;
-            for (int i = N; i < N + M; i++) dist += (a[i] - b[i]) * (a[i] - b[i]);
-            return Math.Sqrt(dist);
-        }
+        
     }
 }
