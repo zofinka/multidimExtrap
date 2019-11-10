@@ -11,9 +11,9 @@ namespace Classifiers
     public struct LabeledData
     {
         public double[] data; // add generic type instead of double.
-        public int label;
+        public Object label;
 
-        public LabeledData(double[] data, int label)
+        public LabeledData(double[] data, Object label)
         {
             this.data = data;
             this.label = label;

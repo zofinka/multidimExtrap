@@ -106,7 +106,7 @@ namespace Classifiers
             int successPredicts = 0;
             for (int i = 0; i < xy.Length; i++)
             {
-                int label;
+                Object label;
                 infer(xy[i].data, out label);
                 if (label == xy[i].label)
                 {

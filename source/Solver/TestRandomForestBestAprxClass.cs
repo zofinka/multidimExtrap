@@ -104,12 +104,12 @@ namespace Solver
             Classifiers.IClassifier cls = new Classifiers.RandomForest();
 
             Classifiers.RandomForestParams ps = new Classifiers.RandomForestParams(ldata.ToArray(), ldata.Count   /* samples count */,
-                                                                                         featureCount   /* features count */,
-                                                                                         2   /* classes count */,
-                                                                                         TreesCount   /* trees count */,
-                                                                                         1   /* count of features to do split in a tree */,
-                                                                                         0.7 /* percent of a training set of samples  */
-                                                                                             /* used to build individual trees. */);
+                                                                                featureCount   /* features count */,
+                                                                                1   /* classes count */,
+                                                                                TreesCount   /* trees count */,
+                                                                                1   /* count of features to do split in a tree */,
+                                                                                0.7 /* percent of a training set of samples  */
+                                                                                    /* used to build individual trees. */);
 
             cls.train(ps);
 
@@ -301,22 +301,13 @@ namespace Solver
             List<double[]> new_points = new List<double[]>();
             List<double[]> temp_points = new List<double[]>();
             temp_points = points.ToList();
-            /*double pointAmount = (def_model.Max[0] - def_model.Min[0]) / 0.25;
-            for (int i = 0; i < pointAmount; i++)
-            {
-                double[] new_point = new double[parser.FunctionDimension + 1];
-                for (int j = 0; j < parser.FunctionDimension; j++)
-                {
-                    new_point[j] = def_model.Min[j] + ((def_model.Max[j] - def_model.Min[j]) / pointAmount * i);
-                }
-                temp_points.Add(new_point);
-                Shepard new_model = new Shepard(parser.FunctionDimension, points);
-                temp_points.Remove(new_point);
-                new_point[parser.FunctionDimension] = check_new_aproximation(def_model, new_model);
-            }*/
 
             int[] count = new int[def_model.N];
-            for (int i = 0; i < def_model.N; i++) count[i] = (def_model.Min[i] == def_model.Max[i]) ? 1 : NGRID;
+            for (int i = 0; i < def_model.N; i++)
+            {
+                count[i] = (def_model.Min[i] == def_model.Max[i]) ? 1 : NGRID;
+            }
+
             Grid grid = new Grid(def_model.N, def_model.M, def_model.Min, def_model.Max, count);
             for (int i = 0; i < grid.Node.Length; i++)
             {
@@ -334,42 +325,46 @@ namespace Solver
 
         private double check_new_aproximation(Shepard old_model, Shepard new_model, Grid grid, int nodeNum)
         {
-            // TODO add calc by integrall
-            double sum = 0;
-            int numInSum = 1;
-            foreach (var neighbour in grid.Neighbours(nodeNum))
-            // for (int i = 0; i < grid.Node.Length; i++)
+            SortedSet<int> neighbours = new SortedSet<int>();
+            foreach (var n in grid.Neighbours(nodeNum))
             {
-                bool in_range = true;
-                /*for (int j = 0; j < grid.Node[i].Length - 1; j++)
+                neighbours.Add(n);
+                foreach (var nn in grid.Neighbours(n))
                 {
-                    if (grid.Node[i][j] > old_model.Max[j] || grid.Node[i][j] < old_model.Min[j])
-                    {
-                        in_range = false;
-                    }
-                }*/
-
-                for (int j = 0; j < grid.Node[neighbour].Length - 1; j++)
-                {
-                    if (grid.Node[neighbour][j] > old_model.Max[j] || grid.Node[neighbour][j] < old_model.Min[j])
-                    {
-                        in_range = false;
-                    }
-                }
-                if (in_range)
-                {
-                    //double[] old_grid_node = (double[])grid.Node[i].Clone();
-                    double[] old_grid_node = (double[])grid.Node[neighbour].Clone();
-                    old_model.Calculate(old_grid_node);
-                    //double[] new_grid_node = (double[])grid.Node[i].Clone();
-                    double[] new_grid_node = (double[])grid.Node[neighbour].Clone();
-                    new_model.Calculate(new_grid_node);
-                    sum += Math.Abs(old_grid_node[old_grid_node.Length - 1] - new_grid_node[new_grid_node.Length - 1]);
-                    numInSum++;
+                    neighbours.Add(nn);
                 }
             }
-            
-            return (double)sum / numInSum;
+
+            double diff = 0.0;
+            int n_count = 0;
+
+            neighbours.ToList<int>().ForEach(
+            (int node_num) =>
+            {
+                bool in_range = true;
+
+                for (int j = 0; j < grid.Node[node_num].Length - 1; j++)
+                {
+                    if (grid.Node[node_num][j] > old_model.Max[j] || grid.Node[node_num][j] < old_model.Min[j])
+                    {
+                        in_range = false;
+                    }
+                }
+
+                if (in_range)
+                {
+                    double[] old_grid_node = (double[])grid.Node[node_num].Clone();
+                    old_model.Calculate(old_grid_node);
+
+                    double[] new_grid_node = (double[])grid.Node[node_num].Clone();
+                    new_model.Calculate(new_grid_node);
+
+                    diff += Math.Abs(old_grid_node[old_grid_node.Length - 1] - new_grid_node[new_grid_node.Length - 1]);
+                    n_count++;
+                }
+            });
+
+            return n_count == 0 ? 0.0 : diff / (double)n_count;
         }
 
         public double distanceX(double[] a, double[] b, int N)
