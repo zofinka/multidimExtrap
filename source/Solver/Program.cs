@@ -20,7 +20,7 @@ namespace Solver
             //defTest.run();
 
             Test randomForestTest;
-            //Test randomForestTest = new TestRandomForestBestAprxClass();
+            //randomForestTest = new TestRandomForestBestAprxClass();
             //randomForestTest.run();
 
 

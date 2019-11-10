@@ -28,12 +28,12 @@ namespace Solver
                                                Tests.SquareArea.func, Tests.SquareArea.derivative, Tests.SquaresProducts.func, Tests.SquaresProducts.derivative);
             Console.WriteLine("Test " + Tests.SquaresProducts.name + " END in " + interAmount + " iterations");*/
 
-            Tests.IFunction SinXCosY = new Tests.SinXCosY();
-            Tests.IFunction SquaresProducts = new Tests.SquaresProducts();
-            Console.WriteLine("Test " + SinXCosY.name + " START");
-            interAmount = testWithRandomForest(SquaresProducts.configFile, SquaresProducts.pointFile, SinXCosY.configFile, SinXCosY.pointFile,
-                                               SquaresProducts.func, SquaresProducts.derivative, SinXCosY.func, SinXCosY.derivative);
-            Console.WriteLine("Test " + SinXCosY.name + " END in " + interAmount + " iterations");
+            //Tests.IFunction SinXCosY = new Tests.SinXCosY();
+            //Tests.IFunction SquaresProducts = new Tests.SquaresProducts();
+            //Console.WriteLine("Test " + SinXCosY.name + " START");
+            //interAmount = testWithRandomForest(SquaresProducts.configFile, SquaresProducts.pointFile, SinXCosY.configFile, SinXCosY.pointFile,
+            //                                   SquaresProducts.func, SquaresProducts.derivative, SinXCosY.func, SinXCosY.derivative);
+            //Console.WriteLine("Test " + SinXCosY.name + " END in " + interAmount + " iterations");
 
             /*Console.WriteLine(Tests.SinXCosXCosY.name + " Test START");
             interAmount = testWithRandomForest(Tests.SinXCosY.configFile, Tests.SinXCosY.pointFile, Tests.SinXCosXCosY.configFile, Tests.SinXCosXCosY.pointFile,
@@ -47,7 +47,7 @@ namespace Solver
 
         }
 
-        private int testWithRandomForest(string configFile, string pointFile, Func<double[], double> func, Func<double[], double[]> derivativeFunc)
+       /* private int testWithRandomForest(string configFile, string pointFile, Func<double[], double> func, Func<double[], double[]> derivativeFunc)
         {
             Parser parser = new Parser(configFile, pointFile);
             List<double[]> points = new List<double[]>();
@@ -123,7 +123,7 @@ namespace Solver
             }
             testResult(parser.FunctionDimension, pointsArray, func);
             return i;
-        }
+        }*/
 
         protected double[][] testDefWayUntilGood(Parser parser, double[][] points, Func<double[], double> func)
         {
@@ -233,7 +233,7 @@ namespace Solver
             return i;
         }*/
 
-        private int testWithRandomForest(string configFileToLearn, string pointFileToLearn, string configFile, string pointFile, Func<double[], double> funcToLearn, Func<double[], double[]> derivativeFuncToLearn, Func<double[], double> func, Func<double[], double[]> derivativeFunc)
+        /*private int testWithRandomForest(string configFileToLearn, string pointFileToLearn, string configFile, string pointFile, Func<double[], double> funcToLearn, Func<double[], double[]> derivativeFuncToLearn, Func<double[], double> func, Func<double[], double[]> derivativeFunc)
         {
             Parser parserToLearn = new Parser(configFile, pointFile);
             
@@ -312,7 +312,7 @@ namespace Solver
             }
             testResult(parser.FunctionDimension, points, func);
             return i;
-        }
+        }*/
 
 
         protected double[][] getNewPoints(double[][] oldPoints, double[][] allPointsToCalc, int pointToClacAmout, int functionDementsion, Func<double[], double> func)
@@ -396,6 +396,119 @@ namespace Solver
                     def_model.Calculate(grid_node);
                     double realFunctionVal = func(grid.Node[i]);
                     sum += Math.Abs(grid_node[grid_node.Length - 1] - realFunctionVal);
+                    numInSum++;
+                }
+            }
+
+            return (double)sum / numInSum;
+        }
+
+        public double distanceX(double[] a, double[] b, int N)
+        {
+            double dist = 0;
+            for (int i = 0; i < N; i++) dist += (a[i] - b[i]) * (a[i] - b[i]);
+            return Math.Sqrt(dist);
+        }
+
+        public double distanceF(double[] a, double[] b, int N, int M)
+        {
+            double dist = 0;
+            for (int i = N; i < N + M; i++) dist += (a[i] - b[i]) * (a[i] - b[i]);
+            return Math.Sqrt(dist);
+        }
+
+        protected double[] update_path_to_knowing_points(Grid grid, double[][] points, int functionDemention)
+        {
+            //вычисляю принадлежность узлов сетки доменам (графовый алгоритм на базе структуры уровней смежности)
+            SortedSet<int>[] adjncy = new SortedSet<int>[points.Length];
+            for (int i = 0; i < points.Length; i++)
+                adjncy[i] = new SortedSet<int>();
+
+            // Console.WriteLine("Разбиение пространства на домены");
+            Queue<int> queue = new Queue<int>();
+            int[] domain = new int[grid.Node.Length];
+            double[] dist = new double[grid.Node.Length];
+            for (int i = 0; i < domain.Length; i++)
+            {
+                domain[i] = -1;
+                dist[i] = double.PositiveInfinity;
+            }
+
+            for (int i = 0; i < points.Length; i++)
+            {
+                int index;
+                grid.ToIndex(points[i], out index);
+                dist[index] = distanceX(grid.Node[index], points[i], functionDemention);
+                domain[index] = i;
+                //setvalue(index, xf[i]);
+                //Console.WriteLine("index " + index + "domain " + domain[index] + " dist " + dist[index] );
+                queue.Enqueue(index);
+            }
+            Console.WriteLine("queue ");
+            while (queue.Count > 0)
+            {
+                int index = queue.Dequeue();
+                int i = domain[index];
+                //Console.WriteLine("index " + index + "domain " + domain[index]);
+                foreach (var adj in grid.Neighbours(index))
+                {
+                    double d = distanceX(grid.Node[adj], points[i], functionDemention);
+                    // Console.WriteLine("adj " + adj + "distanceX(grid.Node[adj], xf[i]) " + d);
+                    if (domain[adj] >= 0)
+                    {
+                        adjncy[domain[adj]].Add(i);
+                        adjncy[i].Add(domain[adj]);
+                        if (d < dist[adj])
+                        {
+                            domain[adj] = i;
+                            dist[adj] = d;
+                        }
+                        continue;
+                    }
+                    domain[adj] = i;
+                    dist[adj] = d;
+                    //Console.WriteLine("adj " + adj + "domain " + domain[adj] + " dist " + dist[adj]);
+                    //setvalue(adj, xf[i]);
+                    queue.Enqueue(adj);
+                }
+            }
+
+            return dist;
+        }
+
+        protected double check_new_aproximation(Shepard old_model, Shepard new_model, Grid grid, int nodeNum)
+        {
+            // TODO add calc by integrall
+            double sum = 0;
+            int numInSum = 1;
+            foreach (var neighbour in grid.Neighbours(nodeNum))
+            // for (int i = 0; i < grid.Node.Length; i++)
+            {
+                bool in_range = true;
+                /*for (int j = 0; j < grid.Node[i].Length - 1; j++)
+                {
+                    if (grid.Node[i][j] > old_model.Max[j] || grid.Node[i][j] < old_model.Min[j])
+                    {
+                        in_range = false;
+                    }
+                }*/
+
+                for (int j = 0; j < grid.Node[neighbour].Length - 1; j++)
+                {
+                    if (grid.Node[neighbour][j] > old_model.Max[j] || grid.Node[neighbour][j] < old_model.Min[j])
+                    {
+                        in_range = false;
+                    }
+                }
+                if (in_range)
+                {
+                    //double[] old_grid_node = (double[])grid.Node[i].Clone();
+                    double[] old_grid_node = (double[])grid.Node[neighbour].Clone();
+                    old_model.Calculate(old_grid_node);
+                    //double[] new_grid_node = (double[])grid.Node[i].Clone();
+                    double[] new_grid_node = (double[])grid.Node[neighbour].Clone();
+                    new_model.Calculate(new_grid_node);
+                    sum += Math.Abs(old_grid_node[old_grid_node.Length - 1] - new_grid_node[new_grid_node.Length - 1]);
                     numInSum++;
                 }
             }
