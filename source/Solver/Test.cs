@@ -415,6 +415,7 @@ namespace Solver
             return Math.Sqrt(dist);
         }
 
+        // It is wrong.
         protected double[] update_path_to_knowing_points(Grid grid, double[][] points, int functionDemention)
         {
             //вычисляю принадлежность узлов сетки доменам (графовый алгоритм на базе структуры уровней смежности)

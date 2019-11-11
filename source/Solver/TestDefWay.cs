@@ -33,9 +33,10 @@ namespace Solver
             Console.WriteLine("Test " + Tests.SquaresProducts.name + " END in " + interAmount + " iterations");*/
 
             // 212 iteration
-            /*Console.WriteLine("Test " + Tests.SinXCosY.name + " START");
-            interAmount = testDefWay(Tests.SinXCosY.configFile, Tests.SinXCosY.pointFile, Tests.SinXCosY.func);
-            Console.WriteLine("Test " + Tests.SinXCosY.name + " END in " + interAmount + " iterations");*/
+            Tests.SinXCosY SinXCosY = new Tests.SinXCosY();
+            Console.WriteLine("Test " + SinXCosY.name + " START");
+            interAmount = test(SinXCosY.configFile, SinXCosY.pointFile, SinXCosY.func);
+            Console.WriteLine("Test " + SinXCosY.name + " END in " + interAmount + " iterations");
 
             //133 iteration
             /*Console.WriteLine(Tests.SinXCosXCosY.name  + " Test START");
@@ -43,10 +44,10 @@ namespace Solver
             Console.WriteLine(Tests.SinXCosXCosY.name  + " Test END in " + interAmount + " iterations");*/
 
             //14 interation
-            Tests.SinFromSumOnSum SinFromSumOnSum = new Tests.SinFromSumOnSum();
-            Console.WriteLine(SinFromSumOnSum.name + " Test START");
-            interAmount = test(SinFromSumOnSum.configFile, SinFromSumOnSum.pointFile, SinFromSumOnSum.func);
-            Console.WriteLine(SinFromSumOnSum.name + " Test END in " + interAmount + " iterations");
+            //Tests.SinFromSumOnSum SinFromSumOnSum = new Tests.SinFromSumOnSum();
+            //Console.WriteLine(SinFromSumOnSum.name + " Test START");
+            //interAmount = test(SinFromSumOnSum.configFile, SinFromSumOnSum.pointFile, SinFromSumOnSum.func);
+            //Console.WriteLine(SinFromSumOnSum.name + " Test END in " + interAmount + " iterations");
         }
 
         private int test(string configFile, string pointFile, Func<double[], double> func)

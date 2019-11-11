@@ -20,11 +20,11 @@ namespace Solver
             //Application.EnableVisualStyles();
             //Application.Run(new Class1()); // or whatever
             //#if ApproxTest
-            //Test defTest = new TestDefWay();
-            //defTest.run();
+            Test defTest = new TestDefWay();
+            defTest.run();
 
-            //          Test randomForestTest;
-            //           randomForestTest = new TestRandomForestBestAprxClass();
+            //Test randomForestTest;
+            //randomForestTest = new TestRandomForestBestAprxClass();
             //randomForestTest.run();
 
 
@@ -35,11 +35,11 @@ namespace Solver
             //Test dichTest = new TestDichotomy();
             //dichTest.run();
 
-            RegressorTest rgTest = new RegressorTest();
-            rgTest.runOnDAALDataset();
+            //RegressorTest rgTest = new RegressorTest();
+            //rgTest.runOnDAALDataset();
 
-            ClassifierTest clsTest = new ClassifierTest();
-            clsTest.runOnDAALDataset();
+            //ClassifierTest clsTest = new ClassifierTest();
+            //clsTest.runOnDAALDataset();
             #endregion
 
             //#endif

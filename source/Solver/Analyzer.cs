@@ -116,34 +116,37 @@ namespace Solver
             int[] count = new int[N]; for (int i = 0; i < N; i++) count[i] = (Min[i] == Max[i]) ? 1 : NGRID;
             create_grid(count);
             analyse_voronoi();
-            analyse_error();
 
             //int n = candidates.Length;
             int n = grid.Node.Length;
             MLAlgorithms.LabeledData[] ldata = new MLAlgorithms.LabeledData[n];
             // 
             for (int i = 0; i < grid.Node.Length; i++)
-            //for (int i = 0; i < candidates.Length; i++)
             {
                 ldata[i] = new MLAlgorithms.LabeledData(build_features(grid.Node[i], this.func, grid, this.dist, xf, i), 0);
-                //ldata[i] = new MLAlgorithms.LabeledData(build_features(grid.Node[candidates[i]], this.func, grid, this.dist, xf, candidates[i]), 0);
             }
 
-            List<int> newCandidates = new List<int>();
-            Object[] y = new Object[ldata.Length];
-            for (int i = 0; i < ldata.Length; i++)
+            candidates = new int[grid.Node.Length];
+
+            List<Tuple<double, int>> improveDiffs = new List<Tuple<double, int>>();
+
+            for (int i = 0; i < grid.Node.Length; ++i)
             {
-                rg.infer(ldata[i].data, out y[i]);
-                if ((int)y[i] == 1)
-                {
-                    newCandidates.Add(i);
-                }
+                Object dist;
+                rg.infer(ldata[i].data, out dist);
+                improveDiffs.Add(new Tuple<double, int>(Convert.ToDouble(dist), i));
             }
-            candidates = newCandidates.ToArray();
 
-            double z;
-            rg.validate<double>(ldata, out z);
-            Console.WriteLine("Z " + z);
+            var sortedImproveDiffs = improveDiffs.OrderByDescending((t) => t.Item1).ToList();
+
+            for (int i = 0; i < grid.Node.Length; i++)
+            {
+                candidates[i] = sortedImproveDiffs[i].Item2;
+            }
+
+            //double z;
+            //rg.validate<double>(ldata, out z);
+            //Console.WriteLine("Z " + z);
 
             xfcandidates = Tools.Sub(grid.Node, candidates);
         }

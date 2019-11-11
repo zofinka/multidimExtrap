@@ -72,7 +72,7 @@ namespace Solver
         }
 
         // Make this also generic
-        public void infer(double[] x, out Object label)
+        public void infer(double[] x, out Object label) //where T is convertible from int
         {
             // alglib.dfprocess outputs vector of possibilities for the classes of given data.
 
