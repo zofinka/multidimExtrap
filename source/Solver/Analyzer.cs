@@ -666,6 +666,7 @@ namespace Solver
 
         private void analyse_with_dichotomy()
         {
+            List<double> distances = new List<double>();
             List<double[]> middles = new List<double[]>();
 
             for (int i = 0; i < xf.Length; ++i)

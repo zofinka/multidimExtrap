@@ -43,10 +43,10 @@ namespace Solver
             Console.WriteLine(Tests.SinXCosXCosY.name  + " Test END in " + interAmount + " iterations");*/
 
             //14 interation
-            Tests.SinFromSumOnSum SinFromSumOnSum = new Tests.SinFromSumOnSum();
-            Console.WriteLine(SinFromSumOnSum.name + " Test START");
-            interAmount = test(SinFromSumOnSum.configFile, SinFromSumOnSum.pointFile, SinFromSumOnSum.func);
-            Console.WriteLine(SinFromSumOnSum.name + " Test END in " + interAmount + " iterations");
+            //Tests.SinFromSumOnSum SinFromSumOnSum = new Tests.SinFromSumOnSum();
+            //Console.WriteLine(SinFromSumOnSum.name + " Test START");
+            //interAmount = test(SinFromSumOnSum.configFile, SinFromSumOnSum.pointFile, SinFromSumOnSum.func);
+            //Console.WriteLine(SinFromSumOnSum.name + " Test END in " + interAmount + " iterations");
         }
 
         private int test(string configFile, string pointFile, Func<double[], double> func)
@@ -54,17 +54,57 @@ namespace Solver
             int predictionPointAmount = 0;
 
             Parser parser = new Parser(configFile, pointFile);
-            int pointAmount = parser.PointAmount;
-            double[][] points = new double[parser.PointAmount][];
+            int extraPointAmount = Convert.ToInt32(Math.Pow(parser.FunctionDimension, 2));
+
+            List<double[]> startPoints = new List<double[]>();
             for (int j = 0; j < parser.PointAmount; j++)
             {
-                points[j] = (double[])parser.Points[j].Clone();
-
+                startPoints.Add((double[])parser.Points[j].Clone());
             }
+
+            //calculate points on the boundaries
+            //amek размещения с повт чтобы взять нужную точку и посчитай ее.
+            // потом придумай код останова.
+
+            // If we have 2-dimension function, then we have two args: X and Y.
+            // And we have minimums and maximums for X and Y.
+            // To present all boundaries of X and Y with such minimums and maximums, 
+            // we shall create rectangle.
+            // From combinatory point we may say that we have 2 places: X and Y; and 2 possibilities: min and max.
+            // We shall do placement with repetitions: (MIN, MIN); (MIN, MAX); (MAX, MIN); (MAX, MAX).
+            // All placements with repetitions for such example: possibilities ^ places;
+            // So, we will have additionaly possibilities ^ places (2 ^ functionDimension) points
+            // to represent all boundaries.
+            // We can use 0 for denotion of the minimum and 1 for maximum.
+            // So we can enumerate all numbers from 0 to (2 ^ functionDimension) and represent this numbers in the 
+            // binary format, takes only last functionDimension bits and use maximum or minimum based on the bit number.
+            for (int j = 0; j < extraPointAmount; ++j)
+            {
+                var point = new double[parser.FunctionDimension + 1];
+                for (int shift = 0; shift < parser.FunctionDimension; ++shift)
+                {
+                    int bitMask = 1 << shift;
+                    bool el = Convert.ToBoolean(j & bitMask);
+
+                    point[shift] = el ? parser.Max[shift] : parser.Min[shift];
+                }
+
+                double val = func(point);
+
+                if (!Double.IsNaN(val) && !Double.IsInfinity(val))
+                {
+                    point[parser.FunctionDimension] = val;
+                    startPoints.Add(point);
+                }
+            }
+
+            int pointAmount = startPoints.Count;
+
+            double[][] points = startPoints.ToArray();
 
             int i = 0;
             double maxErr = 10;
-            while (i < 100000000 && maxErr > parser.Approximation)
+            while (i < 10 && maxErr > parser.Approximation)
             {
                 Shepard model = new Shepard(parser.FunctionDimension, points);
                 Console.WriteLine("Max " + String.Join(", ", model.Max) + " Min " + String.Join(", ", model.Min));

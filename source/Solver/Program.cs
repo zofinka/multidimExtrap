@@ -20,8 +20,8 @@ namespace Solver
             //Application.EnableVisualStyles();
             //Application.Run(new Class1()); // or whatever
             //#if ApproxTest
-            Test defTest = new TestDefWay();
-            defTest.run();
+            //Test defTest = new TestDefWay();
+            //defTest.run();
 
             //Test randomForestTest;
             //randomForestTest = new TestRandomForestBestAprxClass();
@@ -32,8 +32,8 @@ namespace Solver
             //            randomForestTest.run();
 
 
-            //Test dichTest = new TestDichotomy();
-            //dichTest.run();
+            Test dichTest = new TestDichotomy();
+            dichTest.run();
 
             //RegressorTest rgTest = new RegressorTest();
             //rgTest.runOnDAALDataset();
