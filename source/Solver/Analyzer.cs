@@ -44,6 +44,30 @@ namespace Solver
             analyse_error();
         }
 
+        public void do_best_ever_analyse()
+        {
+            int[] count = new int[N]; for (int i = 0; i < N; i++) count[i] = (Min[i] == Max[i]) ? 1 : NGRID;
+            create_grid(count);
+            analyse_voronoi();
+            best_ever_analyse();
+        }
+
+        public void do_quicker_analyse()
+        {
+            int[] count = new int[N]; for (int i = 0; i < N; i++) count[i] = (Min[i] == Max[i]) ? 1 : NGRID;
+            create_grid(count);
+            analyse_voronoi();
+            quick_best_ever_analyse();
+        }
+
+        public void do_dichotomy_analyse()
+        {
+            int[] count = new int[N]; for (int i = 0; i < N; i++) count[i] = (Min[i] == Max[i]) ? 1 : NGRID;
+            create_grid(count);
+            analyse_voronoi();
+            analyse_with_dichotomy();
+        }
+
         public int getGoodPr(Func<double[], double> meFunc, float allowErr)
         {
             int prGoodRes = 0;
@@ -103,44 +127,47 @@ namespace Solver
         }
 
         
-        public void do_random_forest_analyse(Classifiers.IClassifier cls, Func<double[], IFunction, Grid, double[], double[][], int, double[]> build_features)
+        public void do_random_forest_analyse(MLAlgorithms.IMLAlgorithm rg, Func<double[], IFunction, Grid, double[], double[][], int, double[]> build_features)
         {
             int[] count = new int[N]; for (int i = 0; i < N; i++) count[i] = (Min[i] == Max[i]) ? 1 : NGRID;
             create_grid(count);
             analyse_voronoi();
-            analyse_error();
 
             //int n = candidates.Length;
             int n = grid.Node.Length;
-            Classifiers.LabeledData[] ldata = new Classifiers.LabeledData[n];
+            MLAlgorithms.LabeledData[] ldata = new MLAlgorithms.LabeledData[n];
             // 
             for (int i = 0; i < grid.Node.Length; i++)
-            //for (int i = 0; i < candidates.Length; i++)
             {
-                ldata[i] = new Classifiers.LabeledData(build_features(grid.Node[i], this.func, grid, this.dist, xf, i), 0);
-                //ldata[i] = new Classifiers.LabeledData(build_features(grid.Node[candidates[i]], this.func, grid, this.dist, xf, candidates[i]), 0);
+                ldata[i] = new MLAlgorithms.LabeledData(build_features(grid.Node[i], this.func, grid, this.dist, xf, i), 0);
             }
 
-            List<int> newCandidates = new List<int>();
-            Object[] y = new Object[ldata.Length];
-            for (int i = 0; i < ldata.Length; i++)
-            {
-                cls.infer(ldata[i].data, out y[i]);
-                if ((int)y[i] == 1)
-                {
-                    newCandidates.Add(i);
-                }
-            }
-            candidates = newCandidates.ToArray();
+            candidates = new int[grid.Node.Length];
 
-            double z;
-            cls.validate(ldata, out z);
-            Console.WriteLine("Z " + z);
+            List<Tuple<double, int>> improveDiffs = new List<Tuple<double, int>>();
+
+            for (int i = 0; i < grid.Node.Length; ++i)
+            {
+                Object dist;
+                rg.infer(ldata[i].data, out dist);
+                improveDiffs.Add(new Tuple<double, int>(Convert.ToDouble(dist), i));
+            }
+
+            var sortedImproveDiffs = improveDiffs.OrderByDescending((t) => t.Item1).ToList();
+
+            for (int i = 0; i < grid.Node.Length; i++)
+            {
+                candidates[i] = sortedImproveDiffs[i].Item2;
+            }
+
+            //double z;
+            //rg.validate<double>(ldata, out z);
+            //Console.WriteLine("Z " + z);
 
             xfcandidates = Tools.Sub(grid.Node, candidates);
         }
 
-        public void do_random_forest_analyse(Classifiers.IClassifier cls, double allowErr, Func<double[], double> meFunc, Func<double[], double[]> calcDerivative)
+        public void do_random_forest_analyse(MLAlgorithms.IMLAlgorithm cls, double allowErr, Func<double[], double> meFunc, Func<double[], double[]> calcDerivative)
         {
             int[] count = new int[N]; for (int i = 0; i < N; i++) count[i] = (Min[i] == Max[i]) ? 1 : NGRID;
             create_grid(count);
@@ -152,8 +179,8 @@ namespace Solver
             int n = grid.Node.Length;
             //Console.WriteLine(candidates.Length);
             //int n = grid.Node.Length;
-            Classifiers.LabeledData[] ldata = new Classifiers.LabeledData[n];
-            Classifiers.LabeledData[] ldata1 = new Classifiers.LabeledData[n];
+            MLAlgorithms.LabeledData[] ldata = new MLAlgorithms.LabeledData[n];
+            MLAlgorithms.LabeledData[] ldata1 = new MLAlgorithms.LabeledData[n];
             int featureCount = 0;
             for (int i = 0; i < n; i++)
             {
@@ -216,8 +243,8 @@ namespace Solver
                 //    features[2 + k] = derivative[k];
                 // }
 
-                ldata[i] = new Classifiers.LabeledData(features, 0);
-                ldata1[i] = new Classifiers.LabeledData(features, pointClass);
+                ldata[i] = new MLAlgorithms.LabeledData(features, 0);
+                ldata1[i] = new MLAlgorithms.LabeledData(features, pointClass);
                 featureCount = features.Length;
             }
             List<int> newCandidates = new List<int>();
@@ -235,7 +262,7 @@ namespace Solver
             candidates = newCandidates.ToArray();
             // Console.WriteLine(candidates.Length);
             double z;
-            cls.validate(ldata1, out z);
+            cls.validate<int>(ldata1, out z);
             Console.WriteLine("Z " + z);
 
             xfcandidates = Tools.Sub(grid.Node, candidates);
@@ -296,7 +323,7 @@ namespace Solver
 
         
 
-        /*public Classifiers.IClassifier learn_random_forest_on_grid(Func<double[], double> meFunc, Func<double[], double[]> calcDerivative, double allowErr)
+        /*public MLAlgorithms.IMLAlgorithm learn_random_forest_on_grid(Func<double[], double> meFunc, Func<double[], double[]> calcDerivative, double allowErr)
         {
 
             Console.WriteLine("MN " + M + " " + N );
@@ -307,7 +334,7 @@ namespace Solver
 
             int n = grid.Node.Length;// + xf.Length;
             // int n = grid.Node.Length;
-            Classifiers.LabeledData[] ldata = new Classifiers.LabeledData[n];
+            MLAlgorithms.LabeledData[] ldata = new MLAlgorithms.LabeledData[n];
             int featureCount = 0;
             for (int i = 0; i < grid.Node.Length; i++)
             {
@@ -365,14 +392,14 @@ namespace Solver
                 //    features[2 + k] = derivative[k];
                 //}
 
-                ldata[i] = new Classifiers.LabeledData(features, pointClass);
+                ldata[i] = new MLAlgorithms.LabeledData(features, pointClass);
                 featureCount = features.Length;
             }
 <<<<<<< HEAD
             //for(int i = 0; i < xf.Length; i++)
             //{
             //    double[] feature = build_fetures_from_existing_points(i, calcDerivative);
-            //    ldata[grid.Node.Length + i] = new Classifiers.LabeledData(feature, 0);
+            //    ldata[grid.Node.Length + i] = new MLAlgorithms.LabeledData(feature, 0);
             //    featureCount = feature.Length;
             //}
 =======
@@ -380,8 +407,8 @@ namespace Solver
 >>>>>>> 27c7b8e455fc6dcbe52d139e126e81ef3190f90c
 
 
-            Classifiers.IClassifier cls = new Classifiers.RandomForest();
-            Classifiers.RandomForestParams ps = new Classifiers.RandomForestParams(ldata, n   ,
+            MLAlgorithms.IMLAlgorithm cls = new MLAlgorithms.RandomForest();
+            MLAlgorithms.RandomForestParams ps = new MLAlgorithms.RandomForestParams(ldata, n   ,
                                                                                           featureCount   ,
                                                                                           2   ,
                                                                                           100  ,
@@ -580,40 +607,138 @@ namespace Solver
             return res;
         }
 
-        private void analyse_error()
+        private void quick_best_ever_analyse()
         {
+            Console.WriteLine("Интерполяция ошибки аппроксимации функции на области доменов");
+            //интерполирую ошибку
+
+            error = new double[grid.Node.Length];
+
             for (int i = 0; i < grid.Node.Length; i++)
             {
-                this.func.Calculate(grid.Node[i]);
+                error[i] = distanceX(grid.Node[i], xf[domain[i]]);
             }
 
-            //Console.WriteLine("Вычисление локальных экстраполянтов");
-            //вычисляю экстраполянты
-            int[][] newGraph = new int[xf.Length][];
-            for (int i = 0; i < xf.Length; ++i)
+            Console.WriteLine("Упорядочение {0} потенциальных кандидатов", candidates.Length);
+            List<Tuple<int, double>> candidatesTuples = new List<Tuple<int, double>>();
+
+            for (int i = 0; i < candidates.Length; ++i)
             {
-                List<int> domainNeighbours = new List<int>();
+                candidatesTuples.Add(new Tuple<int, double>(candidates[i], error[candidates[i]]));
+            }
+            var sortedCandidates = candidatesTuples.OrderByDescending((t) => t.Item2).ToList();
 
-                domainNeighbours.AddRange(graph[i].ToArray());
-                var index = domainNeighbours.FindIndex(delegate (int el) { return el > i; });
+            Console.WriteLine("Выбор лучших кандидатов среди упорядоченных {0}:", candidates.Length);
+            List<int> bestCandidates = new List<int>();
+            int firstBestCandidate = sortedCandidates[0].Item1;
+            bestCandidates.Add(firstBestCandidate);
 
-                if (index > -1)
+            int[] handledDomains = new int[xf.Length];
+            handledDomains[domain[firstBestCandidate]] = 1;
+
+            for (int i = 1; i < sortedCandidates.Count; ++i)
+            {
+                int candidateIndex = sortedCandidates[i].Item1;
+                int dom = domain[candidateIndex];
+                if (handledDomains[dom] == 0)
                 {
-                    domainNeighbours.RemoveAt(index);
+                    bestCandidates.Add(candidateIndex);
+                    handledDomains[dom] = 1;
                 }
-
-                newGraph[i] = domainNeighbours.ToArray();
             }
 
+            candidates = bestCandidates.ToArray();
+            Console.WriteLine("Формирование списка кандидатов из {0}", candidates.Length);
+            candidates = Tools.Sub(candidates, 0, candidates.Length);
+            xfcandidates = Tools.Sub(grid.Node, candidates);
+
+            Console.WriteLine("Candidates: ");
+            for (int i = 0; i < xfcandidates.Length; i++)
+            {
+                //func.Calculate(xfcandidates[i]);
+                for (int j = N; j < N + M; j++) xfcandidates[i][j] = 0;
+             //  Console.Write(candidates[i]);
+             //   Console.Write(" ");
+            }
+           // Console.WriteLine();
+
+            Console.WriteLine("Процесс расчета закончен успешно");
+        }
+
+        private void best_ever_analyse()
+        {
+            Console.WriteLine("Интерполяция ошибки аппроксимации функции на области доменов");
+            //интерполирую ошибку
+
+            error = new double[grid.Node.Length];
+
+            double max = 0;
+            for (int i = 0; i < grid.Node.Length; i++)
+            {
+                error[i] = distanceX(grid.Node[i], xf[domain[i]]);
+                if (error[i] > max) max = error[i];
+            }
+
+            //Console.WriteLine("Нормировка функции ошибки");
+            ////нормирую ошибку
+            //if (max > 0)
+            //    for (int i = 0; i < grid.Node.Length; i++)
+            //        error[i] = error[i] / max;
+
+            int maxcandidates = candidates.Length;
+            if (candidates.Length > maxcandidates)
+                Console.WriteLine("Предварительный отбор {1} из {0} кандидатов", candidates.Length, maxcandidates);
+
+            Console.WriteLine("Упорядочение {0} потенциальных кандидатов", maxcandidates);
+            //сортировка потенциальных кандидатов
+            for (int i = 0; i < maxcandidates - 1; i++)
+                for (int j = i + 1; j < candidates.Length; j++)
+                    if (error[candidates[i]] < error[candidates[j]])
+                    {
+                        int temp = candidates[i];
+                        candidates[i] = candidates[j];
+                        candidates[j] = temp;
+                    }
+
+
+            List<int> bestCandidates = new List<int>();
+            bestCandidates.Add(candidates[0]);
+
+            int[] handledDomains = new int[xf.Length];
+            handledDomains[domain[candidates[0]]] = 1;
+
+            for (int i = 1; i < candidates.Length; ++i)
+            {
+                int dom = domain[candidates[i]];
+                if (handledDomains[dom] == 0)
+                {
+                    bestCandidates.Add(candidates[i]);
+                    handledDomains[dom] = 1;
+                }
+            }
+
+            candidates = bestCandidates.ToArray();
+            Console.WriteLine("Формирование списка кандидатов", maxcandidates);
+            candidates = Tools.Sub(candidates, 0, candidates.Length);
+            xfcandidates = Tools.Sub(grid.Node, candidates);
+
+            for (int i = 0; i < xfcandidates.Length; i++)
+            {
+                //func.Calculate(xfcandidates[i]);
+                for (int j = N; j < N + M; j++) xfcandidates[i][j] = 0;
+            }
+            Console.WriteLine("Процесс расчета закончен успешно");
+        }
+
+        private void analyse_error()
+        {
+            Console.WriteLine("Вычисление локальных экстраполянтов");
+            //вычисляю экстраполянты
             Shepard[] sh = new Shepard[xf.Length];
             for (int i = 0; i < xf.Length; i++)
-                sh[i] = new Shepard(N, xf, newGraph[i]);
+                sh[i] = new Shepard(N, xf, graph[i]);
 
-            //Shepard[] sh = new Shepard[xf.Length];
-            //for (int i = 0; i < xf.Length; i++)
-            //    sh[i] = new Shepard(N, xf, graph[i]);
-
-            //Console.WriteLine("Аппроксимация значений исходной функции на границах доменов");
+            Console.WriteLine("Аппроксимация значений исходной функции на границах доменов");
             //пересчитываю значения в узлах решетки только на границах доменов
             for (int i = 0; i < grid.Node.Length; i++)
             {
@@ -621,7 +746,7 @@ namespace Solver
                 sh[domain[i]].Calculate(grid.Node[i]);
             }
 
-            //Console.WriteLine("Вычисление ошибки аппроксимации функции на границах доменов");
+            Console.WriteLine("Вычисление ошибки аппроксимации функции на границах доменов");
             //вычисляю ошибку на границах доменов
             error = new double[grid.Node.Length];
             for (int i = 0; i < grid.Node.Length; i++)
@@ -634,7 +759,8 @@ namespace Solver
                     if (error[i] < d) error[i] = d;
                 }
             }
-            //Console.WriteLine("Интерполяция ошибки аппроксимации функции на области доменов");
+
+            Console.WriteLine("Интерполяция ошибки аппроксимации функции на области доменов");
             //интерполирую ошибку
             double max = 0;
             for (int i = 0; i < grid.Node.Length; i++)
@@ -645,28 +771,28 @@ namespace Solver
                 if (max < error[i]) max = error[i];
             }
 
-            //Console.WriteLine("Нормировка функции ошибки");
+            Console.WriteLine("Нормировка функции ошибки");
             //нормирую ошибку
-            if (max > 0) 
+            if (max > 0)
                 for (int i = 0; i < grid.Node.Length; i++)
                     error[i] = error[i] / max;
 
             int maxcandidates = Math.Min(candidates.Length, 1000);
-            //if (candidates.Length > maxcandidates)
-            //    Console.WriteLine("Предварительный отбор {1} из {0} кандидатов", candidates.Length, maxcandidates);
+            if (candidates.Length > maxcandidates)
+                Console.WriteLine("Предварительный отбор {1} из {0} кандидатов", candidates.Length, maxcandidates);
 
-            //Console.WriteLine("Упорядочение {0} потенциальных кандидатов", maxcandidates);
+            Console.WriteLine("Упорядочение {0} потенциальных кандидатов", maxcandidates);
             //сортировка потенциальных кандидатов
             for (int i = 0; i < maxcandidates - 1; i++)
                 for (int j = i + 1; j < candidates.Length; j++)
-                    if (error[candidates[i]] > error[candidates[j]])
+                    if (error[candidates[i]] < error[candidates[j]])
                     {
                         int temp = candidates[i];
                         candidates[i] = candidates[j];
                         candidates[j] = temp;
                     }
 
-            //Console.WriteLine("Формирование списка кандидатов", maxcandidates);
+            Console.WriteLine("Формирование списка кандидатов", maxcandidates);
             candidates = Tools.Sub(candidates, 0, maxcandidates);
             xfcandidates = Tools.Sub(grid.Node, candidates);
             for (int i = 0; i < xfcandidates.Length; i++)
@@ -675,6 +801,34 @@ namespace Solver
                 for (int j = N; j < N + M; j++) xfcandidates[i][j] = 0;
             }
             Console.WriteLine("Процесс расчета закончен успешно");
+        }
+
+        private void analyse_with_dichotomy()
+        {
+        //    List<Tuple<double[], double, bool, double>> middles = new List<Tuple<double[], double, bool, double>();
+
+        //    for (int i = 0; i < xf.Length; ++i)
+        //    {
+        //        foreach (var n in graph[i])
+        //        {
+        //            if (n != i)
+        //            {
+        //                double[] middle = new double[xf[i].Length];
+        //                for (int j = 0; j < xf[i].Length; ++j)
+        //                {
+        //                    middle[j] = (xf[i][j] + xf[n][j]) / 2.0;
+        //                }
+
+        //                double dist = distanceX()
+        //                if (!middles.Contains(middle))
+        //                {
+        //                    middles.Add(middle);
+        //                }
+        //            }
+        //        }
+        //    }
+
+        //    xfcandidates = middles.ToArray();
         }
 
         private void analyse_all_error()

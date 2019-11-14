@@ -66,10 +66,8 @@
     <Compile Include="Class1.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="classifiers\DecisionTree.cs" />
-    <Compile Include="classifiers\IClassifier.cs" />
-    <Compile Include="classifiers\LogReg.cs" />
-    <Compile Include="classifiers\RandomForest.cs" />
+    <Compile Include="ml\IMLAlgorithm.cs" />
+    <Compile Include="ml\RandomForest.cs" />
     <Compile Include="Function.cs" />
     <Compile Include="Grid.cs" />
     <Compile Include="Parser.cs" />
@@ -77,15 +75,18 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Shepard.cs" />
     <Compile Include="Test.cs" />
+    <Compile Include="TestDichotomy.cs" />
     <Compile Include="TestDefWay.cs" />
     <Compile Include="TestRandomForestBestAprxClass.cs" />
     <Compile Include="TestRandomForestLearnAndDoOnOne.cs" />
     <Compile Include="tests\Function.cs" />
     <Compile Include="tests\IFunction.cs" />
+    <Compile Include="tests\LnXY3.cs" />
     <Compile Include="tests\PyramidVolume.cs" />
     <Compile Include="tests\SinFromSumOnSum.cs" />
     <Compile Include="tests\SinXCosXCosY.cs" />
     <Compile Include="tests\SinXCosY.cs" />
+    <Compile Include="tests\SqrtXSqrtY.cs" />
     <Compile Include="tests\SquareArea.cs" />
     <Compile Include="tests\SquaresProducts.cs" />
     <Compile Include="tests\TruncPyramid.cs" />

@@ -10,8 +10,8 @@ namespace Solver
     {
         class SinXCosY: Tests.IFunction
         {
-            public string configFile { get { return @"C:\Users\apronina\Syncplicity\Study\multidimExtrap\source\test_data\12.sincos\config.cfg"; } }
-            public string pointFile { get { return @"C:\Users\apronina\Syncplicity\Study\multidimExtrap\source\test_data\12.sincos\points.txt"; } }
+            public string configFile { get { return @"..\..\..\test_data\12.sincos\config.cfg"; } }
+            public string pointFile { get { return @"..\..\..\test_data\12.sincos\points.txt"; } }
             public string name { get { return "SinCon sin(x1) * con(x2) "; } }
 
             public double func(double[] points)

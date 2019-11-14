@@ -1,10 +1,10 @@
-﻿using System;
+﻿  using System;
 
 namespace Solver
 {
-namespace Classifiers
-{
-    public class RandomForestParams : AClassifierParams
+    namespace MLAlgorithms
+    {
+        public class RandomForestParams : AMLAlgorithmParams
     {
         // Training set size, NPoints>=1
         public int NPoints { get; private set; }
@@ -40,10 +40,10 @@ namespace Classifiers
         }
     }
 
-    public class RandomForest : IClassifier
+    public class RandomForest : IMLAlgorithm
     {
         //use EVS!? (extended variable selection)
-        public void train(AClassifierParams p)
+        public void train<T>(AMLAlgorithmParams p)
         {
             param = p as RandomForestParams;
             if (param == null)
@@ -60,7 +60,7 @@ namespace Classifiers
                 {
                     XY[i, j] = param.XY[i].data[j];
                 }
-                XY[i, param.NVars] = (double)param.XY[i].label;
+                XY[i, param.NVars] = Convert.ToDouble((T)(param.XY[i].label));
             }
 
             alglib.dfbuildrandomdecisionforestx1(XY, param.NPoints, param.NVars, param.NClasses,
@@ -71,24 +71,33 @@ namespace Classifiers
             }
         }
 
-        public void infer(double[] x, out Object label)
+        // Make this also generic
+        public void infer(double[] x, out Object label) //where T is convertible from int
         {
             // alglib.dfprocess outputs vector of possibilities for the classes of given data.
+
             double[] yp  = new double[param.NClasses];
             alglib.dfprocess(df, x, ref yp);
 
-            double max = 0.0;
-            int labelInd = 0;
-            for (int i = 0; i < param.NClasses; i++)
+            if (this.param.NClasses > 1)
             {
-                if (yp[i] > max)
+                double max = 0.0;
+                int labelInd = 0;
+                for (int i = 0; i < param.NClasses; i++)
                 {
-                    max = yp[i];
-                    labelInd = i;
+                    if (yp[i] > max)
+                    {
+                        max = yp[i];
+                        labelInd = i;
+                    }
                 }
-            }
 
-            label = labelInd;
+                label = labelInd;
+            }
+            else
+            {
+                 label = yp[0];    
+            }
 
             // For debug purposes only
             //Console.WriteLine();
@@ -101,20 +110,29 @@ namespace Classifiers
             //Console.WriteLine();
         }
 
-        public void validate(LabeledData[] xy, out double modelPrecision)
+        public void validate<T>(LabeledData[] xy, out double modelPrecision) where T : IComparable
         {
-            int successPredicts = 0;
+            double error = 0;
             for (int i = 0; i < xy.Length; i++)
             {
                 Object label;
                 infer(xy[i].data, out label);
-                if (label == xy[i].label)
+                if (param.NClasses > 1)
                 {
-                    successPredicts++;
+                    Console.WriteLine("Predicted = {0}, expected = {1}", label, xy[i].label);
+                    if (!((T)label).Equals((T)xy[i].label))
+                    {
+                        error++;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Predicted = {0}, expected = {1}", label, xy[i].label);
+                    error += Math.Pow(Convert.ToDouble(label) - Convert.ToDouble(xy[i].label), 2);
                 }
             }
 
-            modelPrecision = (double)successPredicts / (double)xy.Length;
+            modelPrecision = error / (double)xy.Length;
         }
 
         RandomForestParams param = null;

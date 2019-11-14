@@ -15,7 +15,7 @@ namespace Solver
         {
             int interAmount = 0;
             Tests.IFunction[] functions = new Tests.IFunction[1] { new Tests.SinXCosY() };
-            Classifiers.IClassifier cls = get_cls(functions);
+            MLAlgorithms.IMLAlgorithm cls = get_cls(functions);
 
             /*Console.WriteLine("Square Area Function Test START");
             interAmount = testWithRandomForest(Tests.SquareArea.config, Tests.SquareArea.config, Tests.SquareArea.func, Tests.SquareArea.derivative);
@@ -39,7 +39,7 @@ namespace Solver
             Console.WriteLine(Tests.SinFromSumOnSum.name + " Test END in " + interAmount + " iterations");*/
         }
 
-        private int test(Classifiers.IClassifier cls, string configFile, string pointFile, Func<double[], double> func, Func<double[], double[]> derivativeFunc)
+        private int test(MLAlgorithms.IMLAlgorithm cls, string configFile, string pointFile, Func<double[], double> func, Func<double[], double[]> derivativeFunc)
         {
             Parser parser = new Parser(configFile, pointFile);
             double[][] pointsArray = parser.Points.ToList().ToArray();
@@ -94,11 +94,11 @@ namespace Solver
             return i;
         }
 
-        private Classifiers.IClassifier get_cls(Tests.IFunction[] functions)
+        private MLAlgorithms.IMLAlgorithm get_cls(Tests.IFunction[] functions)
         {
-            Classifiers.LabeledData[] ldata = collect_samples(functions);
-            Classifiers.IClassifier cls = new Classifiers.RandomForest();
-            Classifiers.RandomForestParams ps = new Classifiers.RandomForestParams(ldata, ldata.Length   /* samples count */,
+            MLAlgorithms.LabeledData[] ldata = collect_samples(functions);
+            MLAlgorithms.IMLAlgorithm cls = new MLAlgorithms.RandomForest();
+            MLAlgorithms.RandomForestParams ps = new MLAlgorithms.RandomForestParams(ldata, ldata.Length   /* samples count */,
                                                                                           featureCount   /* features count */,
                                                                                           2   /* classes count */,
                                                                                           100   /* trees count */,
@@ -106,7 +106,7 @@ namespace Solver
                                                                                           0.7 /* percent of a training set of samples  */
                                                                                               /* used to build individual trees. */);
 
-            cls.train(ps);
+            cls.train<int>(ps);
             return cls;
         }
 
@@ -161,9 +161,9 @@ namespace Solver
             return features;
         }
 
-        private Classifiers.LabeledData[] collect_samples(Tests.IFunction[] functions)
+        private MLAlgorithms.LabeledData[] collect_samples(Tests.IFunction[] functions)
         {
-            List<Classifiers.LabeledData> ldata = new List<Classifiers.LabeledData>();
+            List<MLAlgorithms.LabeledData> ldata = new List<MLAlgorithms.LabeledData>();
             foreach (Tests.IFunction f in functions)
             {
                 Parser p = new Parser(f.configFile, f.pointFile);
@@ -196,7 +196,7 @@ namespace Solver
                         }
 
                         double[] features = build_features(grid.Node[i], def_model, grid, dist, points.ToArray(), i);
-                        ldata.Add(new Classifiers.LabeledData(features, pointClass));
+                        ldata.Add(new MLAlgorithms.LabeledData(features, pointClass));
                         featureCount = features.Length;
                     }
 

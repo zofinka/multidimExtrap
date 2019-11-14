@@ -19,26 +19,36 @@ namespace Solver
             Console.OutputEncoding = Encoding.UTF8;
             //Application.EnableVisualStyles();
             //Application.Run(new Class1()); // or whatever
-//#if ApproxTest
-            //Test defTest = new TestDefWay();
-            //defTest.run();
+            //#if ApproxTest
+            Test defTest = new TestDefWay();
+            defTest.run();
 
-            Test randomForestTest;
-            randomForestTest = new TestRandomForestBestAprxClass();
+            //Test randomForestTest;
+            //randomForestTest = new TestRandomForestBestAprxClass();
             //randomForestTest.run();
 
 
             //randomForestTest = new TestRandomForestLearnAndDoOnOne();
-            randomForestTest.run();
-#endregion
+            //            randomForestTest.run();
 
-//#endif
+
+            //Test dichTest = new TestDichotomy();
+            //dichTest.run();
+
+            //RegressorTest rgTest = new RegressorTest();
+            //rgTest.runOnDAALDataset();
+
+            //ClassifierTest clsTest = new ClassifierTest();
+            //clsTest.runOnDAALDataset();
+            #endregion
+
+            //#endif
 #if RF_test
-#region Test RandomForest classifier
+            #region Test RandomForest classifier
             ClassifierTest clsTest = new ClassifierTest();
             //t.runDefWayTests();
             clsTest.runOnDAALDataset();
-#endregion
+            #endregion
 #endif
             //t.runRandomForestTestsLearnOnAll();
             //t.runRandomForestTestsLearnOnOneUseForAnother();
@@ -91,7 +101,7 @@ namespace Solver
 
             Parser.keepSolution(args[2], new_points);*/
 
-            Console.ReadKey();
+             Console.ReadKey();
         }
     }
 }

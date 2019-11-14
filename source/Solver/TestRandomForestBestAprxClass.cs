@@ -9,7 +9,7 @@ namespace Solver
     class TestRandomForestBestAprxClass: Test
     {
         int featureCount = 0;
-        List<Classifiers.LabeledData> ldata = new List<Classifiers.LabeledData>();
+        List<MLAlgorithms.LabeledData> ldata = new List<MLAlgorithms.LabeledData>();
         int TreesCount = 100;
         double THRESHOLD = 1;
 
@@ -20,11 +20,11 @@ namespace Solver
             int interAmount = 0;
             Tests.IFunction[] functions = new Tests.IFunction[1] { new Tests.SinXCosY() };
             collect_samples(functions);
-            Classifiers.IClassifier cls = get_cls();
+            MLAlgorithms.IMLAlgorithm rg = get_rg();
 
-            Tests.SinXCosXCosY SinXCosY = new Tests.SinXCosXCosY();
+            Tests.SinXCosY SinXCosY = new Tests.SinXCosY();
             Console.WriteLine(SinXCosY.name + " Test START");
-            interAmount = test(cls, SinXCosY);
+            interAmount = test(rg, SinXCosY);
             Console.WriteLine(SinXCosY.name + " Test END in " + interAmount + " iterations");
 
             /*Tests.SinXCosXCosY SinXCosXCosY = new Tests.SinXCosXCosY();
@@ -39,7 +39,7 @@ namespace Solver
 
         }
 
-        public int test(Classifiers.IClassifier cls, Tests.IFunction function)
+        public int test(MLAlgorithms.IMLAlgorithm rg, Tests.IFunction function)
         {
 
             Parser parserToLearn = new Parser(function.configFile, function.pointFile);
@@ -58,8 +58,9 @@ namespace Solver
             {
                 Shepard model = new Shepard(parser.FunctionDimension, points);
                 Analyzer analyzer = new Analyzer(model, points);
-                analyzer.do_random_forest_analyse(cls, build_features);
+                analyzer.do_random_forest_analyse(rg, build_features);
 
+                //this code to dichotomy
                 double[][] xx = analyzer.Result;
                 int newPointsAmount = Math.Min(parser.PredictionPointAmount, xx.Length);
                 pointAmount = pointAmount + newPointsAmount;
@@ -101,26 +102,27 @@ namespace Solver
             return i;
         } 
 
-        private Classifiers.IClassifier get_cls()
+        private MLAlgorithms.IMLAlgorithm get_rg()
         {
-            Classifiers.IClassifier cls = new Classifiers.RandomForest();
+            MLAlgorithms.IMLAlgorithm ml = new MLAlgorithms.RandomForest();
 
-            Classifiers.RandomForestParams ps = new Classifiers.RandomForestParams(ldata.ToArray(), ldata.Count   /* samples count */,
-                                                                                featureCount   /* features count */,
-                                                                                2   /* classes count */,
-                                                                                TreesCount   /* trees count */,
-                                                                                1   /* count of features to do split in a tree */,
-                                                                                0.7 /* percent of a training set of samples  */
-                                                                                    /* used to build individual trees. */);
+            MLAlgorithms.RandomForestParams ps = new MLAlgorithms.RandomForestParams(ldata.ToArray(),
+                                                                                     ldata.Count    /* samples count */,
+                                                                                     featureCount   /* features count */,
+                                                                                     1              /* classes count */,
+                                                                                     TreesCount     /* trees count */,
+                                                                                     3              /* count of features to do split in a tree */,
+                                                                                     0.7            /* percent of a training set of samples  */
+                                                                                                    /* used to build individual trees. */);
 
-            cls.train(ps);
+            ml.train<double>(ps);
 
             double trainModelPrecision;
-            cls.validate(ldata.ToArray(), out trainModelPrecision);
+            ml.validate<double>(ldata.ToArray(), out trainModelPrecision);
 
             Console.WriteLine("Model precision on training dataset: " + trainModelPrecision);
 
-            return cls;
+            return ml;
         }
 
         private void analyze_points()
@@ -136,13 +138,13 @@ namespace Solver
                 int j = 0;
                 while (j < 5)
                 {
-                    List<double[]> points = get_start_points(j, p, f.func);
+                    List<double[]> knowing_points = get_start_points(j, p, f.func);
                     int i = 0;
                     double err = 1000;
                     while (i < 25 && err > p.Approximation)
                     {
-                        List<double[]> new_points = get_best_points(points.ToArray(), p);
-                        update_samples(new_points, p);
+                        List<double[]> new_points = get_best_points(knowing_points.ToArray(), p);
+                        update_samples(new_points, knowing_points.ToArray(), p);
                         //update_good_samples(new_points, p);
 
                         List<double[]> new_best_points = get_first_best_points(new_points.ToArray(), p.FunctionDimension);
@@ -152,9 +154,9 @@ namespace Solver
                             double[] new_point = new double[new_best_points[k].Length];
                             new_best_points[k].CopyTo(new_point, 0);
                             new_point[new_point.Length - 1] = 0;
-                            points.Add(new_point);
+                            knowing_points.Add(new_point);
                         }
-                        err = calc_err(f.func, points, p);
+                        err = calc_err(f.func, knowing_points, p);
                         i++;
                     }
                     //update_bad_samples(points, p);
@@ -166,34 +168,40 @@ namespace Solver
 
         private List<double[]> get_first_best_points(double[][] points, int functionDemention)
         {
-            int[] sorted_index = new int[points.Length];
-            for (int i = 0; i < points.Length; i++)
+            //int[] sorted_index = new int[points.Length];
+            //for (int i = 0; i < points.Length; i++)
+            //{
+            //    sorted_index[i] = i;
+            //}
+
+            //for (int i = 0; i < sorted_index.Length - 1; i++)
+            //{
+            //    for (int j = i + 1; j < sorted_index.Length; j++)
+            //    {
+            //        if (points[sorted_index[i]][functionDemention] < points[sorted_index[j]][functionDemention])
+            //        {
+            //            int temp = sorted_index[i];
+            //            sorted_index[i] = sorted_index[j];
+            //            sorted_index[j] = 0;
+            //        }
+            //    }
+            //}
+
+            List<Tuple<double, int>> improveDiffs = new List<Tuple<double, int>>();
+
+            for(int i = 0; i < points.Length; ++i)
             {
-                sorted_index[i] = i;
+                improveDiffs.Add(new Tuple<double, int>(points[i][functionDemention], i));
             }
-            
-            for (int i = 0; i < sorted_index.Length - 1; i++)
-            {
-                for (int j = i + 1; j < sorted_index.Length; j++)
-                {
-                    if (points[sorted_index[i]][functionDemention] < points[sorted_index[j]][functionDemention])
-                    {
-                        int temp = sorted_index[i];
-                        sorted_index[i] = sorted_index[j];
-                        sorted_index[j] = 0;
-                    }
-                }
-            }
+
+            var sortedImproveDiffs = improveDiffs.OrderByDescending((t) => t.Item1).ToList();
+
             List<double[]> new_points = new List<double[]>();
-            for (int i = 0; i < sorted_index.Length; i++)
+            for (int i = 0; i < 9; i++)
             {
-                //if (points[sorted_index[i]][functionDemention] < THRESHOLD || i > 3)
-                if (i > 9)
-                {
-                    break;
-                }
-                new_points.Add((double[])points[sorted_index[i]].Clone());
+                new_points.Add((double[])(points[sortedImproveDiffs[i].Item2]).Clone());
             }
+
             return new_points;
         }
 
@@ -227,7 +235,7 @@ namespace Solver
 
         private double[] build_features(double[] point, IFunction model, Grid grid, double[] distToKnownPoints, double[][] knownPoints = null, int index = -1)
         {
-            featureCount = 3;
+            featureCount = 3 + (point.Length - 1);
             double[] features = new double[featureCount];
             // min, max in locality
             double maxNeighboursVal = double.MinValue;
@@ -242,12 +250,12 @@ namespace Solver
                 if (calcNeighbour[calcNeighbour.Length - 1] < minNeighboursVal)
                 {
                     minNeighboursVal = calcNeighbour[calcNeighbour.Length - 1];
-                    maxNeighbours = (double[])calcNeighbour.Clone();
+                    minNeighbours = (double[])calcNeighbour.Clone();
                 }
                 if (calcNeighbour[calcNeighbour.Length - 1] > maxNeighboursVal)
                 {
                     maxNeighboursVal = calcNeighbour[calcNeighbour.Length - 1];
-                    minNeighbours = (double[])calcNeighbour.Clone();
+                    maxNeighbours = (double[])calcNeighbour.Clone();
                 }
             }
             // current val
@@ -267,7 +275,12 @@ namespace Solver
             features[0] = Math.Abs(curentNodeVal - maxNeighboursVal);
           //  features[1] = distanceX(curentNode, maxNeighbours, model.N);
             features[1] = Math.Abs(curentNodeVal - minNeighboursVal);
-           // features[2] = distToKnownPoints[index];
+            features[2] = distToKnownPoints[index];
+
+            for (int i = 0; i < point.Length - 1; ++i)
+            {
+                features[3 + i] = point[i];
+            }
             //  features[3] = distanceX(curentNode, maxNeighbours, model.N);
 
             return features;
@@ -286,7 +299,7 @@ namespace Solver
                 if (p[p.Length - 1] < THRESHOLD)
                 {
                     double[] feature = build_features(p, def_model, grid, dist);
-                    ldata.Add(new Classifiers.LabeledData(feature, 0));
+                    ldata.Add(new MLAlgorithms.LabeledData(feature, 0));
                 }
             }
         }
@@ -316,13 +329,13 @@ namespace Solver
                 if (!eql)
                 {
                     double[] feature = build_features(grid.Node[i], def_model, grid, dist);
-                    ldata.Add(new Classifiers.LabeledData(feature, 0));
+                    ldata.Add(new MLAlgorithms.LabeledData(feature, 0));
                 }
             }
             
         }
 
-        private void update_samples(List<double[]> points, Parser paraser)
+        private void update_samples(List<double[]> points, double[][] knowingPoints, Parser paraser)
         {
             Shepard def_model = new Shepard(paraser.FunctionDimension, points.ToArray());
             int bad_point = 0;
@@ -330,31 +343,16 @@ namespace Solver
 
             int[] count = new int[def_model.N];
             for (int i = 0; i < def_model.N; i++) count[i] = (def_model.Min[i] == def_model.Max[i]) ? 1 : NGRID;
+   
             Grid grid = new Grid(def_model.N, def_model.M, def_model.Min, def_model.Max, count);
-            double[] dist = update_path_to_knowing_points(grid, points.ToArray(), paraser.FunctionDimension);
-            foreach (double[] p in points)
-            {
-                if (p[p.Length - 1] < THRESHOLD)
-                {
-                    double[] feature = build_features(p, def_model, grid, dist);
-                    ldata.Add(new Classifiers.LabeledData(feature, 0));
-                    good_point++;
-                }
-            }
-            foreach (double[] p in points)
-            {
-                if (p[p.Length - 1] > THRESHOLD)
-                {
-                    double[] feature = build_features(p, def_model, grid, dist);
-                    ldata.Add(new Classifiers.LabeledData(feature, 1));
-                    bad_point++;
-                }
-                if (bad_point == good_point)
-                {
-                    break;
-                }
-            }
 
+            double[] dist = update_path_to_knowing_points(grid, knowingPoints, paraser.FunctionDimension);
+
+            foreach (double[] p in points)
+            {
+                double[] feature = build_features(p, def_model, grid, dist);
+                ldata.Add(new MLAlgorithms.LabeledData(feature, p[p.Length - 1]));
+            }
         }
 
         // return all points with value of getting aproximation better in last index
@@ -378,7 +376,7 @@ namespace Solver
                 grid.Node[i].CopyTo(new_point, 0);
                 temp_points.Add(new_point);
                 Shepard new_model = new Shepard(parser.FunctionDimension, temp_points.ToArray());
-                temp_points.RemoveAt(temp_points.Count - 1);
+                temp_points.Remove(new_point);
                 new_point[parser.FunctionDimension] = check_new_aproximation(def_model, new_model, grid, i);
                 new_points.Add(new_point);
             }
