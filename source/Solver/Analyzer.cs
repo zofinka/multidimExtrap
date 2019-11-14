@@ -44,6 +44,22 @@ namespace Solver
             analyse_error();
         }
 
+        public void do_best_ever_analyse()
+        {
+            int[] count = new int[N]; for (int i = 0; i < N; i++) count[i] = (Min[i] == Max[i]) ? 1 : NGRID;
+            create_grid(count);
+            analyse_voronoi();
+            best_ever_analyse();
+        }
+
+        public void do_quicker_analyse()
+        {
+            int[] count = new int[N]; for (int i = 0; i < N; i++) count[i] = (Min[i] == Max[i]) ? 1 : NGRID;
+            create_grid(count);
+            analyse_voronoi();
+            quick_best_ever_analyse();
+        }
+
         public void do_dichotomy_analyse()
         {
             int[] count = new int[N]; for (int i = 0; i < N; i++) count[i] = (Min[i] == Max[i]) ? 1 : NGRID;
@@ -591,6 +607,129 @@ namespace Solver
             return res;
         }
 
+        private void quick_best_ever_analyse()
+        {
+            Console.WriteLine("Интерполяция ошибки аппроксимации функции на области доменов");
+            //интерполирую ошибку
+
+            error = new double[grid.Node.Length];
+
+            for (int i = 0; i < grid.Node.Length; i++)
+            {
+                error[i] = distanceX(grid.Node[i], xf[domain[i]]);
+            }
+
+            Console.WriteLine("Упорядочение {0} потенциальных кандидатов", candidates.Length);
+            List<Tuple<int, double>> candidatesTuples = new List<Tuple<int, double>>();
+
+            for (int i = 0; i < candidates.Length; ++i)
+            {
+                candidatesTuples.Add(new Tuple<int, double>(candidates[i], error[candidates[i]]));
+            }
+            var sortedCandidates = candidatesTuples.OrderByDescending((t) => t.Item2).ToList();
+
+            Console.WriteLine("Выбор лучших кандидатов среди упорядоченных {0}:", candidates.Length);
+            List<int> bestCandidates = new List<int>();
+            int firstBestCandidate = sortedCandidates[0].Item1;
+            bestCandidates.Add(firstBestCandidate);
+
+            int[] handledDomains = new int[xf.Length];
+            handledDomains[domain[firstBestCandidate]] = 1;
+
+            for (int i = 1; i < sortedCandidates.Count; ++i)
+            {
+                int candidateIndex = sortedCandidates[i].Item1;
+                int dom = domain[candidateIndex];
+                if (handledDomains[dom] == 0)
+                {
+                    bestCandidates.Add(candidateIndex);
+                    handledDomains[dom] = 1;
+                }
+            }
+
+            candidates = bestCandidates.ToArray();
+            Console.WriteLine("Формирование списка кандидатов из {0}", candidates.Length);
+            candidates = Tools.Sub(candidates, 0, candidates.Length);
+            xfcandidates = Tools.Sub(grid.Node, candidates);
+
+            Console.WriteLine("Candidates: ");
+            for (int i = 0; i < xfcandidates.Length; i++)
+            {
+                //func.Calculate(xfcandidates[i]);
+                for (int j = N; j < N + M; j++) xfcandidates[i][j] = 0;
+             //  Console.Write(candidates[i]);
+             //   Console.Write(" ");
+            }
+           // Console.WriteLine();
+
+            Console.WriteLine("Процесс расчета закончен успешно");
+        }
+
+        private void best_ever_analyse()
+        {
+            Console.WriteLine("Интерполяция ошибки аппроксимации функции на области доменов");
+            //интерполирую ошибку
+
+            error = new double[grid.Node.Length];
+
+            double max = 0;
+            for (int i = 0; i < grid.Node.Length; i++)
+            {
+                error[i] = distanceX(grid.Node[i], xf[domain[i]]);
+                if (error[i] > max) max = error[i];
+            }
+
+            //Console.WriteLine("Нормировка функции ошибки");
+            ////нормирую ошибку
+            //if (max > 0)
+            //    for (int i = 0; i < grid.Node.Length; i++)
+            //        error[i] = error[i] / max;
+
+            int maxcandidates = candidates.Length;
+            if (candidates.Length > maxcandidates)
+                Console.WriteLine("Предварительный отбор {1} из {0} кандидатов", candidates.Length, maxcandidates);
+
+            Console.WriteLine("Упорядочение {0} потенциальных кандидатов", maxcandidates);
+            //сортировка потенциальных кандидатов
+            for (int i = 0; i < maxcandidates - 1; i++)
+                for (int j = i + 1; j < candidates.Length; j++)
+                    if (error[candidates[i]] < error[candidates[j]])
+                    {
+                        int temp = candidates[i];
+                        candidates[i] = candidates[j];
+                        candidates[j] = temp;
+                    }
+
+
+            List<int> bestCandidates = new List<int>();
+            bestCandidates.Add(candidates[0]);
+
+            int[] handledDomains = new int[xf.Length];
+            handledDomains[domain[candidates[0]]] = 1;
+
+            for (int i = 1; i < candidates.Length; ++i)
+            {
+                int dom = domain[candidates[i]];
+                if (handledDomains[dom] == 0)
+                {
+                    bestCandidates.Add(candidates[i]);
+                    handledDomains[dom] = 1;
+                }
+            }
+
+            candidates = bestCandidates.ToArray();
+            Console.WriteLine("Формирование списка кандидатов", maxcandidates);
+            candidates = Tools.Sub(candidates, 0, candidates.Length);
+            xfcandidates = Tools.Sub(grid.Node, candidates);
+
+            for (int i = 0; i < xfcandidates.Length; i++)
+            {
+                //func.Calculate(xfcandidates[i]);
+                for (int j = N; j < N + M; j++) xfcandidates[i][j] = 0;
+            }
+            Console.WriteLine("Процесс расчета закончен успешно");
+        }
+
         private void analyse_error()
         {
             Console.WriteLine("Вычисление локальных экстраполянтов");
@@ -666,30 +805,30 @@ namespace Solver
 
         private void analyse_with_dichotomy()
         {
-            List<double> distances = new List<double>();
-            List<double[]> middles = new List<double[]>();
+        //    List<Tuple<double[], double, bool, double>> middles = new List<Tuple<double[], double, bool, double>();
 
-            for (int i = 0; i < xf.Length; ++i)
-            {
-                foreach (var n in graph[i])
-                {
-                    if (n != i)
-                    {
-                        double[] middle = new double[xf[i].Length];
-                        for (int j = 0; j < xf[i].Length; ++j)
-                        {
-                            middle[j] = (xf[i][j] + xf[n][j]) / 2.0;
-                        }
+        //    for (int i = 0; i < xf.Length; ++i)
+        //    {
+        //        foreach (var n in graph[i])
+        //        {
+        //            if (n != i)
+        //            {
+        //                double[] middle = new double[xf[i].Length];
+        //                for (int j = 0; j < xf[i].Length; ++j)
+        //                {
+        //                    middle[j] = (xf[i][j] + xf[n][j]) / 2.0;
+        //                }
 
-                        if (!middles.Contains(middle))
-                        {
-                            middles.Add(middle);
-                        }
-                    }
-                }
-            }
+        //                double dist = distanceX()
+        //                if (!middles.Contains(middle))
+        //                {
+        //                    middles.Add(middle);
+        //                }
+        //            }
+        //        }
+        //    }
 
-            xfcandidates = middles.ToArray();
+        //    xfcandidates = middles.ToArray();
         }
 
         private void analyse_all_error()

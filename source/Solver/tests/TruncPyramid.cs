@@ -10,8 +10,8 @@ namespace Solver
     {
         class TruncPyramid: Tests.IFunction
         {
-            public string configFile { get { return @"C:\Users\Sofya\multidimExtrap\source\test_data\4.TruncPyramidVolume\config.cfg"; } }
-            public string pointFile { get { return @"C: \Users\Sofya\multidimExtrap\source\test_data\4.TruncPyramidVolume\points.txt"; } }
+            public string configFile { get { return @"C:\Users\apronina\Syncplicity\Study\multidimExtrap\source\test_data\4.TruncPyramidVolume\config.cfg"; } }
+            public string pointFile { get { return @"C:\Users\apronina\Syncplicity\Study\multidimExtrap\source\test_data\4.TruncPyramidVolume\points.txt"; } }
             public string name { get { return "Trunc Pyramid Volume 1/3 * x3 * (x1 + x2 + sqrt(x1*x2))"; } }
 
             public double func(double[] points)
