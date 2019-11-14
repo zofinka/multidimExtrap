@@ -10,8 +10,8 @@ namespace Solver
     {
         class PyramidVolume: Tests.IFunction
         {
-            public string configFile { get { return @"C:\Users\apronina\Syncplicity\Study\multidimExtrap\source\test_data\3.PyramidVolume\config.cfg"; } }
-            public string pointFile { get { return @"C:\Users\apronina\Syncplicity\Study\multidimExtrap\source\test_data\3.PyramidVolume\points.txt"; } }
+            public string configFile { get { return @"..\..\..\test_data\3.PyramidVolume\config.cfg"; } }
+            public string pointFile { get { return @"..\..\..\test_data\3.PyramidVolume\points.txt"; } }
             public string name { get { return "Pyramid volume "; } }
 
             public double func(double[] points)

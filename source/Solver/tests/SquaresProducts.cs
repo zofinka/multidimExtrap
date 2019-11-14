@@ -10,8 +10,8 @@ namespace Solver
     {
         class SquaresProducts: Tests.IFunction
         {
-            public string configFile { get { return @"C:\Users\apronina\Syncplicity\Study\multidimExtrap\source\test_data\11.SquaresProducts\config.cfg"; } }
-            public string pointFile { get { return @"C:\Users\apronina\Syncplicity\Study\multidimExtrap\source\test_data\11.SquaresProducts\points.txt"; } }
+            public string configFile { get { return @"..\..\..\test_data\11.SquaresProducts\config.cfg"; } }
+            public string pointFile { get { return @"..\..\..\test_data\11.SquaresProducts\points.txt"; } }
             public string name { get { return "SquaresProducts x1^2 * x2^2 * ..."; } }
 
             // x^2*y^2 + 2

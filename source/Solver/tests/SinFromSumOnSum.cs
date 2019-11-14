@@ -10,8 +10,8 @@ namespace Solver
     {
         class SinFromSumOnSum : Tests.IFunction
         {
-            public string configFile { get { return @"C:\Users\apronina\Syncplicity\Study\multidimExtrap\source\test_data\16.sin(x+y)on(x+y)\config.cfg"; } }
-            public string pointFile { get { return @"C:\Users\apronina\Syncplicity\Study\multidimExtrap\source\test_data\16.sin(x+y)on(x+y)\points.txt"; } }
+            public string configFile { get { return @"..\..\..\test_data\16.sin(x+y)on(x+y)\config.cfg"; } }
+            public string pointFile { get { return @"..\..\..\test_data\16.sin(x+y)on(x+y)\points.txt"; } }
             public string name { get { return "SinFromSumOnSum sin(x1 + x2) / (x1 + x2)"; }}
 
             // sin(x + y) / x + y

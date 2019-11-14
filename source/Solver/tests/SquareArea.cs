@@ -10,8 +10,8 @@ namespace Solver
     {
         class SquareArea: Tests.IFunction
         {
-            public string configFile { get { return @"C:\Users\Sofya\multidimExtrap\source\test_data\1.SquareArea\config.cfg"; } }
-            public string pointFile { get { return @"C:\Users\Sofya\multidimExtrap\source\test_data\1.SquareArea\points.txt"; } }
+            public string configFile { get { return @"..\..\..\test_data\1.SquareArea\config.cfg"; } }
+            public string pointFile { get { return @"..\..\..\test_data\1.SquareArea\points.txt"; } }
             public string name { get { return "Square Area x1 * x2 * ... "; } }
 
             public double func(double[] points)

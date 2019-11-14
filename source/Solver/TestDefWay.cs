@@ -19,10 +19,10 @@ namespace Solver
             Console.WriteLine(Tests.SquareArea.name +  " END in " + interAmount + " iterations\n");*/
 
             // 1 interation with def algorithm 
-            Tests.PyramidVolume PyramidVolume  = new Tests.PyramidVolume();
+            /*Tests.PyramidVolume PyramidVolume  = new Tests.PyramidVolume();
             Console.WriteLine(PyramidVolume.name + " Test START");
             interAmount = test(PyramidVolume.configFile, PyramidVolume.pointFile, PyramidVolume.func);
-            Console.WriteLine(PyramidVolume.name + " Test END in " + interAmount + " iterations");
+            Console.WriteLine(PyramidVolume.name + " Test END in " + interAmount + " iterations");*/
 
             //Tests.TruncPyramid TruncPyramid = new Tests.TruncPyramid();
             //Console.WriteLine(TruncPyramid.name + " Test START");
@@ -30,28 +30,40 @@ namespace Solver
             //Console.WriteLine(TruncPyramid.name + " Test END in " + interAmount + " iterations");
 
             //126 interation
-            //Tests.SquaresProducts SquaresProducts = new Tests.SquaresProducts();
-            //Console.WriteLine("Test " + SquaresProducts.name + " START");
-            //interAmount = test(SquaresProducts.configFile, SquaresProducts.pointFile, SquaresProducts.func);
-            //Console.WriteLine("Test " + SquaresProducts.name + " END in " + interAmount + " iterations");
+            /* Tests.SquaresProducts SquaresProducts = new Tests.SquaresProducts();
+             Console.WriteLine("Test " + SquaresProducts.name + " START");
+             interAmount = test(SquaresProducts.configFile, SquaresProducts.pointFile, SquaresProducts.func);
+             Console.WriteLine("Test " + SquaresProducts.name + " END in " + interAmount + " iterations");*/
 
             // 212 iteration
-            //Tests.SinXCosY SinXCosY = new Tests.SinXCosY();
-            //Console.WriteLine("Test " + SinXCosY.name + " START");
-            //interAmount = test(SinXCosY.configFile, SinXCosY.pointFile, SinXCosY.func);
-            //Console.WriteLine("Test " + SinXCosY.name + " END in " + interAmount + " iterations");
+            /*Tests.SinXCosY SinXCosY = new Tests.SinXCosY();
+            Console.WriteLine("Test " + SinXCosY.name + " START");
+            interAmount = test(SinXCosY.configFile, SinXCosY.pointFile, SinXCosY.func);
+            Console.WriteLine("Test " + SinXCosY.name + " END in " + interAmount + " iterations");*/
 
             //133 iteration
-            //Tests.SinXCosXCosY SinXCosXCosY = new Tests.SinXCosXCosY();
-            //Console.WriteLine(SinXCosXCosY.name + " Test START");
-            //interAmount = test(SinXCosXCosY.configFile, SinXCosXCosY.pointFile, SinXCosXCosY.func);
-            //Console.WriteLine(SinXCosXCosY.name + " Test END in " + interAmount + " iterations");
+            /*Tests.SinXCosXCosY SinXCosXCosY = new Tests.SinXCosXCosY();
+            Console.WriteLine(SinXCosXCosY.name + " Test START");
+            interAmount = test(SinXCosXCosY.configFile, SinXCosXCosY.pointFile, SinXCosXCosY.func);
+            Console.WriteLine(SinXCosXCosY.name + " Test END in " + interAmount + " iterations");*/
 
             //14 interation
-            //Tests.SinFromSumOnSum SinFromSumOnSum = new Tests.SinFromSumOnSum();
-            //Console.WriteLine(SinFromSumOnSum.name + " Test START");
-            //interAmount = test(SinFromSumOnSum.configFile, SinFromSumOnSum.pointFile, SinFromSumOnSum.func);
-            //Console.WriteLine(SinFromSumOnSum.name + " Test END in " + interAmount + " iterations");
+            /*Tests.SinFromSumOnSum SinFromSumOnSum = new Tests.SinFromSumOnSum();
+            Console.WriteLine(SinFromSumOnSum.name + " Test START");
+            interAmount = test(SinFromSumOnSum.configFile, SinFromSumOnSum.pointFile, SinFromSumOnSum.func);
+            Console.WriteLine(SinFromSumOnSum.name + " Test END in " + interAmount + " iterations");*/
+
+            // interation
+            /*Tests.SqrtXSqrtY SqrtXSqrtY = new Tests.SqrtXSqrtY();
+            Console.WriteLine(SqrtXSqrtY.name + " Test START");
+            interAmount = test(SqrtXSqrtY.configFile, SqrtXSqrtY.pointFile, SqrtXSqrtY.func);
+            Console.WriteLine(SqrtXSqrtY.name + " Test END in " + interAmount + " iterations");*/
+
+            // interation
+            Tests.LnXY3 LnXY3 = new Tests.LnXY3();
+            Console.WriteLine(LnXY3.name + " Test START");
+            interAmount = test(LnXY3.configFile, LnXY3.pointFile, LnXY3.func);
+            Console.WriteLine(LnXY3.name + " Test END in " + interAmount + " iterations");
         }
 
         private int test(string configFile, string pointFile, Func<double[], double> func)
@@ -71,11 +83,10 @@ namespace Solver
             while (i < 100000000 && maxErr > parser.Approximation)
             {
                 Shepard model = new Shepard(parser.FunctionDimension, points);
-                Console.WriteLine("Max " + String.Join(", ", model.Max) + " Min " + String.Join(", ", model.Min));
                 Analyzer analyzer = new Analyzer(model, points);
                 //analyzer.do_default_analyse();
-                analyzer.do_best_ever_analyse();
-                //analyzer.do_quicker_analyse();
+                //analyzer.do_best_ever_analyse();
+                analyzer.do_quicker_analyse();
                 double[][] xx = analyzer.Result;
 
                 int predictionPointAmount = Math.Min(parser.PredictionPointAmount, xx.Length);
@@ -96,12 +107,12 @@ namespace Solver
                 for (int k = 0; k < new_points.Length; k++)
                 {
                     double err = Math.Abs(points[pointAmount - predictionPointAmount + k][parser.FunctionDimension] - new_points[k][parser.FunctionDimension]);
-                    Console.WriteLine(" \n " + (points[pointAmount - predictionPointAmount + k][parser.FunctionDimension] - new_points[k][parser.FunctionDimension]) + " " + points[pointAmount - predictionPointAmount + k][parser.FunctionDimension] + " " + new_points[k][parser.FunctionDimension] + " \n ");
+                    //Console.WriteLine(" \n " + (points[pointAmount - predictionPointAmount + k][parser.FunctionDimension] - new_points[k][parser.FunctionDimension]) + " " + points[pointAmount - predictionPointAmount + k][parser.FunctionDimension] + " " + new_points[k][parser.FunctionDimension] + " \n ");
                     if (err > tempErr)
                     {
                         tempErr = err;
                     }
-                    Console.WriteLine("f({0}) real val {1} predict val {2} err {3}", String.Join(", ", xx[k]), points[pointAmount - predictionPointAmount + k][parser.FunctionDimension], new_points[k][parser.FunctionDimension], err);
+                    //sConsole.WriteLine("f({0}) real val {1} predict val {2} err {3}", String.Join(", ", xx[k]), points[pointAmount - predictionPointAmount + k][parser.FunctionDimension], new_points[k][parser.FunctionDimension], err);
                 }
                 maxErr = tempErr;
                 i++;
