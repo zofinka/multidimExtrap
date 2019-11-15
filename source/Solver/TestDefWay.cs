@@ -19,15 +19,15 @@ namespace Solver
             Console.WriteLine(Tests.SquareArea.name +  " END in " + interAmount + " iterations\n");*/
 
             // 1 interation with def algorithm 
-            Tests.PyramidVolume PyramidVolume  = new Tests.PyramidVolume();
-            Console.WriteLine(PyramidVolume.name + " Test START");
-            interAmount = test(PyramidVolume.configFile, PyramidVolume.pointFile, PyramidVolume.func);
-            Console.WriteLine(PyramidVolume.name + " Test END in " + interAmount + " iterations");
+            //Tests.PyramidVolume PyramidVolume  = new Tests.PyramidVolume();
+            //Console.WriteLine(PyramidVolume.name + " Test START");
+            //interAmount = test(PyramidVolume.configFile, PyramidVolume.pointFile, PyramidVolume.func);
+            //Console.WriteLine(PyramidVolume.name + " Test END in " + interAmount + " iterations");
 
-            //Tests.TruncPyramid TruncPyramid = new Tests.TruncPyramid();
-            //Console.WriteLine(TruncPyramid.name + " Test START");
-            //interAmount = test(TruncPyramid.configFile, TruncPyramid.pointFile, TruncPyramid.func);
-            //Console.WriteLine(TruncPyramid.name + " Test END in " + interAmount + " iterations");
+            Tests.TruncPyramid TruncPyramid = new Tests.TruncPyramid();
+            Console.WriteLine(TruncPyramid.name + " Test START");
+            interAmount = test(TruncPyramid.configFile, TruncPyramid.pointFile, TruncPyramid.func);
+            Console.WriteLine(TruncPyramid.name + " Test END in " + interAmount + " iterations");
 
             //126 interation
             //Tests.SquaresProducts SquaresProducts = new Tests.SquaresProducts();
@@ -66,7 +66,7 @@ namespace Solver
             }
 
             int i = 0;
-            double maxErr = 10;
+            double maxErr = 100000000;
             int totalPointsCount = 0;
             while (i < 100000000 && maxErr > parser.Approximation)
             {
@@ -74,8 +74,8 @@ namespace Solver
                 Console.WriteLine("Max " + String.Join(", ", model.Max) + " Min " + String.Join(", ", model.Min));
                 Analyzer analyzer = new Analyzer(model, points);
                 //analyzer.do_default_analyse();
-                analyzer.do_best_ever_analyse();
-                //analyzer.do_quicker_analyse();
+                //analyzer.do_best_ever_analyse();
+                analyzer.do_quicker_analyse();
                 double[][] xx = analyzer.Result;
 
                 int predictionPointAmount = Math.Min(parser.PredictionPointAmount, xx.Length);
@@ -93,17 +93,20 @@ namespace Solver
 
                 //Нужно не максимальную ошибку считать, а среднюю.
                 double tempErr = 0;
+                double totalErr = 0.0;
                 for (int k = 0; k < new_points.Length; k++)
                 {
                     double err = Math.Abs(points[pointAmount - predictionPointAmount + k][parser.FunctionDimension] - new_points[k][parser.FunctionDimension]);
                     Console.WriteLine(" \n " + (points[pointAmount - predictionPointAmount + k][parser.FunctionDimension] - new_points[k][parser.FunctionDimension]) + " " + points[pointAmount - predictionPointAmount + k][parser.FunctionDimension] + " " + new_points[k][parser.FunctionDimension] + " \n ");
-                    if (err > tempErr)
-                    {
-                        tempErr = err;
-                    }
+                    //if (err > tempErr)
+                    //{
+                    //    tempErr = err;
+                    //}
+                    totalErr += err;
                     Console.WriteLine("f({0}) real val {1} predict val {2} err {3}", String.Join(", ", xx[k]), points[pointAmount - predictionPointAmount + k][parser.FunctionDimension], new_points[k][parser.FunctionDimension], err);
                 }
-                maxErr = tempErr;
+                //maxErr = tempErr;
+                maxErr = totalErr / new_points.Length;
                 i++;
                 totalPointsCount = points.Length;
 
