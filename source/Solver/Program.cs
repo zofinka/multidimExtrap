@@ -101,7 +101,7 @@ namespace Solver
 
             Parser.keepSolution(args[2], new_points);*/
 
-            Console.ReadKey();
+             Console.ReadKey();
         }
     }
 }

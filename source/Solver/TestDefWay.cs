@@ -19,15 +19,17 @@ namespace Solver
             Console.WriteLine(Tests.SquareArea.name +  " END in " + interAmount + " iterations\n");*/
 
             // 1 interation with def algorithm 
-            //Tests.PyramidVolume PyramidVolume  = new Tests.PyramidVolume();
+
+            //Tests.PyramidVolume PyramidVolume = new Tests.PyramidVolume();
             //Console.WriteLine(PyramidVolume.name + " Test START");
             //interAmount = test(PyramidVolume.configFile, PyramidVolume.pointFile, PyramidVolume.func);
             //Console.WriteLine(PyramidVolume.name + " Test END in " + interAmount + " iterations");
 
-            Tests.TruncPyramid TruncPyramid = new Tests.TruncPyramid();
-            Console.WriteLine(TruncPyramid.name + " Test START");
-            interAmount = test(TruncPyramid.configFile, TruncPyramid.pointFile, TruncPyramid.func);
-            Console.WriteLine(TruncPyramid.name + " Test END in " + interAmount + " iterations");
+
+            //Tests.TruncPyramid TruncPyramid = new Tests.TruncPyramid();
+            //Console.WriteLine(TruncPyramid.name + " Test START");
+            //interAmount = test(TruncPyramid.configFile, TruncPyramid.pointFile, TruncPyramid.func);
+            //Console.WriteLine(TruncPyramid.name + " Test END in " + interAmount + " iterations");
 
             //126 interation
             //Tests.SquaresProducts SquaresProducts = new Tests.SquaresProducts();
@@ -52,6 +54,18 @@ namespace Solver
             //Console.WriteLine(SinFromSumOnSum.name + " Test START");
             //interAmount = test(SinFromSumOnSum.configFile, SinFromSumOnSum.pointFile, SinFromSumOnSum.func);
             //Console.WriteLine(SinFromSumOnSum.name + " Test END in " + interAmount + " iterations");
+
+            // interation
+            //Tests.SqrtXSqrtY SqrtXSqrtY = new Tests.SqrtXSqrtY();
+            //Console.WriteLine(SqrtXSqrtY.name + " Test START");
+            //interAmount = test(SqrtXSqrtY.configFile, SqrtXSqrtY.pointFile, SqrtXSqrtY.func);
+            //Console.WriteLine(SqrtXSqrtY.name + " Test END in " + interAmount + " iterations");
+
+            // interation
+            Tests.LnXY3 LnXY3 = new Tests.LnXY3();
+            Console.WriteLine(LnXY3.name + " Test START");
+            interAmount = test(LnXY3.configFile, LnXY3.pointFile, LnXY3.func);
+            Console.WriteLine(LnXY3.name + " Test END in " + interAmount + " iterations");
         }
 
         private int test(string configFile, string pointFile, Func<double[], double> func)
@@ -71,7 +85,6 @@ namespace Solver
             while (i < 100000000 && maxErr > parser.Approximation)
             {
                 Shepard model = new Shepard(parser.FunctionDimension, points);
-                Console.WriteLine("Max " + String.Join(", ", model.Max) + " Min " + String.Join(", ", model.Min));
                 Analyzer analyzer = new Analyzer(model, points);
                 //analyzer.do_default_analyse();
                 //analyzer.do_best_ever_analyse();
