@@ -68,7 +68,7 @@ namespace Solver
             analyse_with_dichotomy();
         }
 
-        public int getGoodPr(Func<double[], double> meFunc, float allowErr)
+        public int getGoodPr(Func<double[], double[]> meFunc, float allowErr)
         {
             int prGoodRes = 0;
             int n = grid.Node.Length;
@@ -76,8 +76,20 @@ namespace Solver
             {
                 double[] cuurentNode = (double[])grid.Node[i].Clone();
                 this.func.Calculate(cuurentNode);
-                double cuurentNodeVal = cuurentNode[cuurentNode.Length - 1];
-                if (Math.Abs(meFunc(grid.Node[i]) - cuurentNodeVal) < allowErr)
+
+                double[] approxFunctionVal = new double[this.M];
+                for (int k = 0; k < this.M; ++k)
+                {
+                    approxFunctionVal[k] = cuurentNode[this.N + k];
+                }
+
+                var realFunctionVal = meFunc(grid.Node[i]);
+
+                double[] diffs = realFunctionVal.Zip(approxFunctionVal, (d1, d2) => Math.Abs(d1 - d2)).ToArray();
+
+                double err = (diffs.Sum() / diffs.Length);
+
+                if (err < allowErr)
                 {
                     prGoodRes += 1;
                 }

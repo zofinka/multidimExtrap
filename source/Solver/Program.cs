@@ -81,7 +81,7 @@ namespace Solver
                new double[] { 2, 1, 2 },
                new double[] { 2, 2, 4 }
            };*/
-            //Shepard model = new Shepard(parser.FunctionDimension, parser.Points);
+            //Shepard model = new Shepard(parser.N_Dimension, parser.Points);
 
             //double[] x = new double[] { 0.5, 0.5, 0 };
             //model.Calculate(x);
@@ -101,7 +101,7 @@ namespace Solver
 
             Parser.keepSolution(args[2], new_points);*/
 
-             Console.ReadKey();
+            Console.ReadKey();
         }
     }
 }

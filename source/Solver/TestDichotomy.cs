@@ -43,18 +43,18 @@ namespace Solver
             Console.WriteLine(Tests.SinXCosXCosY.name  + " Test END in " + interAmount + " iterations");*/
 
             //14 interation
-            Tests.SinFromSumOnSum SinFromSumOnSum = new Tests.SinFromSumOnSum();
-            Console.WriteLine(SinFromSumOnSum.name + " Test START");
-            interAmount = test(SinFromSumOnSum.configFile, SinFromSumOnSum.pointFile, SinFromSumOnSum.func);
-            Console.WriteLine(SinFromSumOnSum.name + " Test END in " + interAmount + " iterations");
+            //Tests.SinFromSumOnSum SinFromSumOnSum = new Tests.SinFromSumOnSum();
+            //Console.WriteLine(SinFromSumOnSum.name + " Test START");
+            //interAmount = test(SinFromSumOnSum.configFile, SinFromSumOnSum.pointFile, SinFromSumOnSum.func);
+            //Console.WriteLine(SinFromSumOnSum.name + " Test END in " + interAmount + " iterations");
         }
 
-        private int test(string configFile, string pointFile, Func<double[], double> func)
+        private int test(string configFile, string pointFile, Func<double[], double[]> func)
         {
             int predictionPointAmount = 0;
 
             Parser parser = new Parser(configFile, pointFile);
-            //int extraPointAmount = Convert.ToInt32(Math.Pow(parser.FunctionDimension, 2));
+            //int extraPointAmount = Convert.ToInt32(Math.Pow(parser.N_Dimension, 2));
 
             List<double[]> startPoints = new List<double[]>();
             for (int j = 0; j < parser.PointAmount; j++)
@@ -76,8 +76,8 @@ namespace Solver
             //// binary format, takes only last functionDimension bits and use maximum or minimum based on the bit number.
             //for (int j = 0; j < extraPointAmount; ++j)
             //{
-            //    var point = new double[parser.FunctionDimension + 1];
-            //    for (int shift = 0; shift < parser.FunctionDimension; ++shift)
+            //    var point = new double[parser.NM_Dimension];
+            //    for (int shift = 0; shift < parser.N_Dimension; ++shift)
             //    {
             //        int bitMask = 1 << shift;
             //        bool el = Convert.ToBoolean(j & bitMask);
@@ -89,7 +89,7 @@ namespace Solver
 
             //    if (!Double.IsNaN(val) && !Double.IsInfinity(val))
             //    {
-            //        point[parser.FunctionDimension] = val;
+            //        point[parser.N_Dimension] = val;
             //        startPoints.Add(point);
             //    }
             //}
@@ -102,7 +102,7 @@ namespace Solver
             double maxErr = 10;
             while (i < 20 && maxErr > parser.Approximation)
             {
-                Shepard model = new Shepard(parser.FunctionDimension, points);
+                Shepard model = new Shepard(parser.N_Dimension, points);
                 Console.WriteLine("Max " + String.Join(", ", model.Max) + " Min " + String.Join(", ", model.Min));
                 Analyzer analyzer = new Analyzer(model, points);
                 analyzer.do_dichotomy_analyse();
@@ -110,7 +110,7 @@ namespace Solver
                 double[][] xx = analyzer.Result;
                 predictionPointAmount = xx.Length;
                 pointAmount = pointAmount + predictionPointAmount;
-                points = getNewPoints(points, analyzer.Result, predictionPointAmount, parser.FunctionDimension, func);
+                points = getNewPoints(points, analyzer.Result, predictionPointAmount, parser.N_Dimension, func);
 
                 double[][] new_points = new double[predictionPointAmount][];
                 for (int j = 0; j < predictionPointAmount; j++)
@@ -123,19 +123,38 @@ namespace Solver
                 double tempErr = 0;
                 for (int k = 0; k < new_points.Length; k++)
                 {
-                    double err = Math.Abs(points[pointAmount - predictionPointAmount + k][parser.FunctionDimension] - new_points[k][parser.FunctionDimension]);
-                    Console.WriteLine(" \n " + (points[pointAmount - predictionPointAmount + k][parser.FunctionDimension] - new_points[k][parser.FunctionDimension]) + " " + points[pointAmount - predictionPointAmount + k][parser.FunctionDimension] + " " + new_points[k][parser.FunctionDimension] + " \n ");
+                    var realPoint = points[pointAmount - predictionPointAmount + k];
+                    double[] realFunctionVal = new double[parser.M_Dimension];
+
+                    for (int l = 0; l < parser.M_Dimension; ++l)
+                    {
+                        realFunctionVal[l] = realPoint[parser.N_Dimension + l];
+                    }
+
+                    var approxPoint = new_points[k];
+                    double[] approxFunctionVal = new double[parser.M_Dimension];
+
+                    for (int l = 0; l < parser.M_Dimension; ++l)
+                    {
+                        approxFunctionVal[l] = approxPoint[parser.N_Dimension + l];
+                    }
+
+                    double[] diffs = realFunctionVal.Zip(approxFunctionVal, (d1, d2) => Math.Abs(d1 - d2)).ToArray();
+
+                    double err = (diffs.Sum() / diffs.Length);
+
+                    Console.WriteLine(" \n " + err + " " + String.Join(", ", realFunctionVal) + " " + String.Join(", ", approxFunctionVal) + " \n ");
                     if (err > tempErr)
                     {
                         tempErr = err;
                     }
-                    Console.WriteLine("f({0}) real val {1} predict val {2} err {3}", String.Join(", ", xx[k]), points[pointAmount - predictionPointAmount + k][parser.FunctionDimension], new_points[k][parser.FunctionDimension], err);
+                    Console.WriteLine("f({0}) real val {1} predict val {2} err {3}", String.Join(", ", xx[k]), String.Join(", ", realFunctionVal), String.Join(", ", approxFunctionVal), err);
                 }
                 maxErr = tempErr;
                 i++;
 
             }
-            testResult(parser.FunctionDimension, points, func);
+            testResult(parser.N_Dimension, parser.M_Dimension, points, func);
             Console.WriteLine("Calc err avg " + calc_err(func, points.ToList(), parser));
 
             return i;

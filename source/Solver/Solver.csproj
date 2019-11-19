@@ -80,12 +80,12 @@
     <Compile Include="TestRandomForestBestAprxClass.cs" />
     <Compile Include="TestRandomForestLearnAndDoOnOne.cs" />
     <Compile Include="tests\Function.cs" />
-    <Compile Include="tests\IFunction.cs" />
     <Compile Include="tests\LnXY3.cs" />
     <Compile Include="tests\PyramidVolume.cs" />
     <Compile Include="tests\SinFromSumOnSum.cs" />
     <Compile Include="tests\SinXCosXCosY.cs" />
     <Compile Include="tests\SinXCosY.cs" />
+    <Compile Include="tests\LGFunc.cs" />
     <Compile Include="tests\SqrtXSqrtY.cs" />
     <Compile Include="tests\SquareArea.cs" />
     <Compile Include="tests\SquaresProducts.cs" />

@@ -18,7 +18,7 @@ namespace Solver
         override public void run()
         {
             int interAmount = 0;
-            Tests.IFunction[] functions = new Tests.IFunction[1] { new Tests.SinXCosY() };
+            Tests.AFunction[] functions = new Tests.AFunction[1] { new Tests.SinXCosY() };
             collect_samples(functions);
             MLAlgorithms.IMLAlgorithm rg = get_rg();
 
@@ -39,11 +39,14 @@ namespace Solver
 
         }
 
-        public int test(MLAlgorithms.IMLAlgorithm rg, Tests.IFunction function)
+        public int test(MLAlgorithms.IMLAlgorithm rg, Tests.AFunction function, string tableFile = null)
         {
+            Parser parser = new Parser(function.configFile, function.pointFile, tableFile);
+            if (tableFile != null)
+            {
+                function.table = parser.getTable();
+            }
 
-            Parser parserToLearn = new Parser(function.configFile, function.pointFile);
-            Parser parser = new Parser(function.configFile, function.pointFile);
             int pointAmount = parser.PointAmount;
 
             double[][] points = new double[parser.PointAmount][];
@@ -56,7 +59,7 @@ namespace Solver
             double maxErr = 10;
             while (i < 1000 && maxErr > parser.Approximation)
             {
-                Shepard model = new Shepard(parser.FunctionDimension, points);
+                Shepard model = new Shepard(parser.N_Dimension, points);
                 Analyzer analyzer = new Analyzer(model, points);
                 analyzer.do_random_forest_analyse(rg, build_features);
 
@@ -69,7 +72,12 @@ namespace Solver
                 for (int j = 0; j < newPointsAmount; j++)
                 {
                     double[] new_point = (double[])xx[j].Clone();
-                    new_point[parser.FunctionDimension] = function.func(new_point);
+
+                    var response = function.func(new_point);
+                    for (int k = 0; k < parser.M_Dimension; ++k)
+                    {
+                        new_point[parser.N_Dimension + k] = response[k];
+                    }
                     newPoints.Add(new_point);
                 }
                 points = newPoints.ToArray();
@@ -86,19 +94,38 @@ namespace Solver
                 double tempErr = 0;
                 for (int k = 0; k < new_points.Length; k++)
                 {
-                    double err = Math.Abs(points[pointAmount - newPointsAmount + k][parser.FunctionDimension] - new_points[k][parser.FunctionDimension]);
-                    Console.WriteLine(" \n " + (points[pointAmount - newPointsAmount + k][parser.FunctionDimension] - new_points[k][parser.FunctionDimension]) + " " + points[pointAmount - newPointsAmount + k][parser.FunctionDimension] + " " + new_points[k][parser.FunctionDimension] + " \n ");
+                    var realPoint = points[pointAmount - parser.PredictionPointAmount + k];
+                    double[] realFunctionVal = new double[parser.M_Dimension];
+
+                    for (int l = 0; l < parser.M_Dimension; ++l)
+                    {
+                        realFunctionVal[l] = realPoint[parser.N_Dimension + l];
+                    }
+
+                    var approxPoint = new_points[k];
+                    double[] approxFunctionVal = new double[parser.M_Dimension];
+
+                    for (int l = 0; l < parser.M_Dimension; ++l)
+                    {
+                        approxFunctionVal[l] = approxPoint[parser.N_Dimension + l];
+                    }
+
+                    double[] diffs = realFunctionVal.Zip(approxFunctionVal, (d1, d2) => Math.Abs(d1 - d2)).ToArray();
+
+                    double err = (diffs.Sum() / diffs.Length);
+
+                    Console.WriteLine(" \n " + err + " " + String.Join(", ", realFunctionVal) + " " + String.Join(", ", approxFunctionVal) + " \n ");
                     if (err > tempErr)
                     {
                         tempErr = err;
                     }
-                    Console.WriteLine("f({0}) real val {1} predict val {2} err {3}", String.Join(", ", xx[k]), points[pointAmount - newPointsAmount + k][parser.FunctionDimension], new_points[k][parser.FunctionDimension], err);
+                    Console.WriteLine("f({0}) real val {1} predict val {2} err {3}", String.Join(", ", xx[k]), String.Join(", ", realFunctionVal), String.Join(", ", approxFunctionVal), err);
                 }
                 maxErr = tempErr;
                 i++;
             }
-            testResult(parser.FunctionDimension, points, function.func);
-            Console.WriteLine(" Avg err " + calc_err(function.func, points.ToList(), parser));
+         //   testResult(parser.N_Dimension, parser.M_Dimension, points, function.func);
+         //   Console.WriteLine(" Avg err " + calc_err(function.func, points.ToList(), parser));
             return i;
         } 
 
@@ -130,9 +157,9 @@ namespace Solver
 
         }
 
-        private void collect_samples(Tests.IFunction[] functions)
+        private void collect_samples(Tests.AFunction[] functions)
         {
-            foreach (Tests.IFunction f in functions)
+            foreach (Tests.AFunction f in functions)
             {
                 Parser p = new Parser(f.configFile, f.pointFile);
                 int j = 0;
@@ -147,7 +174,7 @@ namespace Solver
                         update_samples(new_points, knowing_points.ToArray(), p);
                         //update_good_samples(new_points, p);
 
-                        List<double[]> new_best_points = get_first_best_points(new_points.ToArray(), p.FunctionDimension);
+                        List<double[]> new_best_points = get_first_best_points(new_points.ToArray(), p.N_Dimension);
 
                         for (int k = 0; k < new_best_points.Count; k++)
                         {
@@ -205,7 +232,7 @@ namespace Solver
             return new_points;
         }
 
-        private List<double[]> get_start_points(int i, Parser parser, Func<double[], double> func)
+        private List<double[]> get_start_points(int i, Parser parser, Func<double[], double[]> func)
         {
             if (i == 0)
             {
@@ -217,12 +244,19 @@ namespace Solver
                 Random random = new Random();
                 for (int j = 0; j < parser.Points.Length; j++)
                 {
-                    double[] point = new double[parser.FunctionDimension + 1];
-                    for (int k = 0; k < parser.FunctionDimension; k++)
+                    double[] point = new double[parser.NM_Dimension];
+
+                    for (int k = 0; k < parser.N_Dimension; k++)
                     {
                         point[k] = random.NextDouble() * (parser.Max[k] - parser.Min[k]) + parser.Min[k];
                     }
-                    point[parser.FunctionDimension] = func(point);
+
+                    var response = func(point);
+                    for (int l = 0; l < parser.M_Dimension; ++l)
+                    {
+                        point[parser.N_Dimension + l] = response[l];
+                    }
+                    
                     points.Add(point);
                 }
                 return points;
@@ -288,12 +322,12 @@ namespace Solver
 
         private void update_good_samples(List<double[]> points, Parser paraser)
         {
-            Shepard def_model = new Shepard(paraser.FunctionDimension, points.ToArray());
+            Shepard def_model = new Shepard(paraser.N_Dimension, points.ToArray());
 
             int[] count = new int[def_model.N];
             for (int i = 0; i < def_model.N; i++) count[i] = (def_model.Min[i] == def_model.Max[i]) ? 1 : NGRID;
             Grid grid = new Grid(def_model.N, def_model.M, def_model.Min, def_model.Max, count);
-            double[] dist = update_path_to_knowing_points(grid, points.ToArray(), paraser.FunctionDimension);
+            double[] dist = update_path_to_knowing_points(grid, points.ToArray(), paraser.N_Dimension);
             foreach (double[] p in points)
             {
                 if (p[p.Length - 1] < THRESHOLD)
@@ -306,12 +340,12 @@ namespace Solver
 
         private void update_bad_samples(List<double[]> points, Parser parser)
         {
-            Shepard def_model = new Shepard(parser.FunctionDimension, points.ToArray());
+            Shepard def_model = new Shepard(parser.N_Dimension, points.ToArray());
 
             int[] count = new int[def_model.N];
             for (int i = 0; i < def_model.N; i++) count[i] = (def_model.Min[i] == def_model.Max[i]) ? 1 : NGRID;
             Grid grid = new Grid(def_model.N, def_model.M, def_model.Min, def_model.Max, count);
-            double[] dist = update_path_to_knowing_points(grid, points.ToArray(), parser.FunctionDimension);
+            double[] dist = update_path_to_knowing_points(grid, points.ToArray(), parser.N_Dimension);
             for (int i = 0; i < grid.Node.Length; i++)
             {
                 bool eql = true;
@@ -337,7 +371,7 @@ namespace Solver
 
         private void update_samples(List<double[]> points, double[][] knowingPoints, Parser paraser)
         {
-            Shepard def_model = new Shepard(paraser.FunctionDimension, points.ToArray());
+            Shepard def_model = new Shepard(paraser.N_Dimension, points.ToArray());
             int bad_point = 0;
             int good_point = 0;
 
@@ -346,7 +380,7 @@ namespace Solver
    
             Grid grid = new Grid(def_model.N, def_model.M, def_model.Min, def_model.Max, count);
 
-            double[] dist = update_path_to_knowing_points(grid, knowingPoints, paraser.FunctionDimension);
+            double[] dist = update_path_to_knowing_points(grid, knowingPoints, paraser.N_Dimension);
 
             foreach (double[] p in points)
             {
@@ -358,7 +392,7 @@ namespace Solver
         // return all points with value of getting aproximation better in last index
         private List<double[]> get_best_points(double[][] points, Parser parser)
         {
-            Shepard def_model = new Shepard(parser.FunctionDimension, points);
+            Shepard def_model = new Shepard(parser.N_Dimension, points);
             List<double[]> new_points = new List<double[]>();
             List<double[]> temp_points = new List<double[]>();
             temp_points = points.ToList();
@@ -372,12 +406,12 @@ namespace Solver
             Grid grid = new Grid(def_model.N, def_model.M, def_model.Min, def_model.Max, count);
             for (int i = 0; i < grid.Node.Length; i++)
             {
-                double[] new_point = new double[parser.FunctionDimension + 1];
+                double[] new_point = new double[parser.NM_Dimension];
                 grid.Node[i].CopyTo(new_point, 0);
                 temp_points.Add(new_point);
-                Shepard new_model = new Shepard(parser.FunctionDimension, temp_points.ToArray());
+                Shepard new_model = new Shepard(parser.N_Dimension, temp_points.ToArray());
                 temp_points.Remove(new_point);
-                new_point[parser.FunctionDimension] = check_new_aproximation(def_model, new_model, grid, i);
+                new_point[parser.N_Dimension] = check_new_aproximation(def_model, new_model, grid, i);
                 new_points.Add(new_point);
             }
 

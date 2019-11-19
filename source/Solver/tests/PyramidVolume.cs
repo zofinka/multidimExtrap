@@ -8,23 +8,23 @@ namespace Solver
 {
     namespace Tests
     {
-        class PyramidVolume: Tests.IFunction
+        class PyramidVolume: Tests.AFunction
         {
-            public string configFile { get { return @"..\..\..\test_data\3.PyramidVolume\config.cfg"; } }
-            public string pointFile { get { return @"..\..\..\test_data\3.PyramidVolume\points.txt"; } }
-            public string name { get { return "Pyramid volume "; } }
+            public override string configFile { get { return @"..\..\..\test_data\3.PyramidVolume\config.cfg"; } }
+            public override string pointFile { get { return @"..\..\..\test_data\3.PyramidVolume\points.txt"; } }
+            public override string name { get { return "Pyramid volume "; } }
 
-            public double func(double[] points)
+            public override double[] func(double[] points)
             {
                 double res = 1;
                 for (int i = 0; i < points.Length - 1; i++)
                 {
                     res *= points[i];
                 }
-                return res / 3;
+                return new double[1] { res / 3 };
             }
 
-            public double[] derivative(double[] points)
+            public override double[] derivative(double[] points)
             {
                 double[] derivative = new double[points.Length - 1];
                 for (int i = 0; i < points.Length - 1; i++)

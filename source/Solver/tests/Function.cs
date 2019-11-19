@@ -8,21 +8,18 @@ namespace Solver
 {
     namespace Tests
     {
-        abstract class Function
+        abstract class AFunction
         {
-            public static string configFile;
-            public static string pointFile;
-            public static string name;
+            public abstract string configFile { get; }
+            public abstract string pointFile { get; }
+            public abstract string name { get; }
+            public virtual string tableFile { get { return null; } }
 
-            public static double func(double[] points)
-            {
-                return 0;
-            }
+            public abstract double[] func(double[] points);
 
-            public static double[] derivative(double[] points)
-            {
-                return new double[1] { 0 };
-            }
+            public abstract double[] derivative(double[] points);
+
+            public Dictionary<double[], double[]> table = null;
         }
     }
 }
