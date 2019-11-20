@@ -410,7 +410,7 @@ namespace Solver
                 {
                     double[] grid_node = (double[])grid.Node[i].Clone();
                     def_model.Calculate(grid_node);
-                    double[] approxFunctionVal = new double[def_model.N];
+                    double[] approxFunctionVal = new double[def_model.M];
                     
                     for (int j = 0; j < def_model.M; ++j)
                     {

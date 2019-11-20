@@ -47,13 +47,25 @@ namespace Solver
             //Console.WriteLine(SinFromSumOnSum.name + " Test START");
             //interAmount = test(SinFromSumOnSum.configFile, SinFromSumOnSum.pointFile, SinFromSumOnSum.func);
             //Console.WriteLine(SinFromSumOnSum.name + " Test END in " + interAmount + " iterations");
+
+            Tests.LGFunc LGFunc = new Tests.LGFunc();
+            Console.WriteLine(LGFunc.name + " Test START");
+            interAmount = test(LGFunc.configFile, LGFunc.pointFile, LGFunc, LGFunc.tableFile);
+            Console.WriteLine(LGFunc.name + " Test END in " + interAmount + " iterations");
         }
 
-        private int test(string configFile, string pointFile, Func<double[], double[]> func)
+        private int test(string configFile, string pointFile, Tests.AFunction function, string tableFile = null)
         {
+            Parser parser = new Parser(configFile, pointFile, tableFile);
+            if (tableFile != null)
+            {
+                function.table = parser.getTable();
+            }
+
+            Func<double[], double[]> func = function.func;
+
             int predictionPointAmount = 0;
 
-            Parser parser = new Parser(configFile, pointFile);
             //int extraPointAmount = Convert.ToInt32(Math.Pow(parser.N_Dimension, 2));
 
             List<double[]> startPoints = new List<double[]>();

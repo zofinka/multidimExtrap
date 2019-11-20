@@ -44,10 +44,10 @@ namespace Solver
             //Console.WriteLine("Test " + SinXCosY.name + " END in " + interAmount + " iterations");
 
             //133 iteration
-            /*Tests.SinXCosXCosY SinXCosXCosY = new Tests.SinXCosXCosY();
+            Tests.SinXCosXCosY SinXCosXCosY = new Tests.SinXCosXCosY();
             Console.WriteLine(SinXCosXCosY.name + " Test START");
             interAmount = test(SinXCosXCosY.configFile, SinXCosXCosY.pointFile, SinXCosXCosY);
-            Console.WriteLine(SinXCosXCosY.name + " Test END in " + interAmount + " iterations");*/
+            Console.WriteLine(SinXCosXCosY.name + " Test END in " + interAmount + " iterations");
 
             //14 interation
             //Tests.SinFromSumOnSum SinFromSumOnSum = new Tests.SinFromSumOnSum();
@@ -62,10 +62,10 @@ namespace Solver
             //Console.WriteLine(SqrtXSqrtY.name + " Test END in " + interAmount + " iterations");
 
             // interation
-            Tests.LGFunc LGFunc = new Tests.LGFunc();
-            Console.WriteLine(LGFunc.name + " Test START");
-            interAmount = test(LGFunc.configFile, LGFunc.pointFile, LGFunc, LGFunc.tableFile);
-            Console.WriteLine(LGFunc.name + " Test END in " + interAmount + " iterations");
+            //Tests.LGFunc LGFunc = new Tests.LGFunc();
+            //Console.WriteLine(LGFunc.name + " Test START");
+            //interAmount = test(LGFunc.configFile, LGFunc.pointFile, LGFunc, LGFunc.tableFile);
+            //Console.WriteLine(LGFunc.name + " Test END in " + interAmount + " iterations");
         }
 
         private int test(string configFile, string pointFile, Tests.AFunction function, string tableFile = null)
@@ -137,15 +137,15 @@ namespace Solver
                     double err = (diffs.Sum() / diffs.Length);
 
                     Console.WriteLine(" \n " + err + " " + String.Join(", ", realFunctionVal) + " " + String.Join(", ", approxFunctionVal) + " \n ");
-                    //if (err > tempErr)
-                    //{
-                    //    tempErr = err;
-                    //}
-                    totalErr += err;
+                    if (err > tempErr)
+                    {
+                        tempErr = err;
+                    }
+                    //totalErr += err;
                     Console.WriteLine("f({0}) real val {1} predict val {2} err {3}", String.Join(", ", xx[k]), String.Join(", ", realFunctionVal), String.Join(", ", approxFunctionVal), err);
                 }
-                //maxErr = tempErr;
-                maxErr = totalErr / new_points.Length;
+                maxErr = tempErr;
+               /// maxErr = totalErr / new_points.Length;
                 i++;
                 totalPointsCount = points.Length;
 

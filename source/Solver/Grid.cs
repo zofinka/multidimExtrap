@@ -34,7 +34,7 @@ namespace Solver
 
             step = new double[N];
             for (int i = 0; i < N; i++)
-                step[i] = (max[i] - min[i]) / count[i];
+                step[i] = (max[i] - min[i]) / (count[i] - 1);
 
             //создаю сетку
             rount = new int[N];
