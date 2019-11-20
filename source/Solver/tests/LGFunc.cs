@@ -14,20 +14,31 @@ namespace Solver
             public override string configFile { get { return @"..\..\..\test_data\20.LGFunc\config.cfg"; } }
             public override string pointFile { get { return @"..\..\..\test_data\20.LGFunc\points.txt"; } }
             public override string tableFile { get { return @"..\..\..\test_data\20.LGFunc\table.txt"; } }
-            public override string name { get { return "18.sqrtXsqrtY "; } }
+            public override string name { get { return "20.LGFunc "; } }
 
-            public override  double[] func(double[] points)
+            public override double[] func(double[] points)
             {
-                if (points.Length != 1)
-                {
-                    throw new System.ArgumentException("point shall have 1 argument");
-                }
-
                 if (table == null)
                 {
                     throw new System.Exception("this func requires a table!");
                 }
-                return table[points];
+
+                var reqPoint = new double[] { points[0] };
+                var knownPoints = table.Keys;
+
+                double[] candidate = null;
+                double minDiff = 0.1;
+                foreach (var kPoint in knownPoints)
+                {
+                    var diff = kPoint.Zip(reqPoint, (d1, d2) => Math.Abs(d1 - d2)).ToArray()[0];
+                    if (diff < minDiff)
+                    {
+                        minDiff = diff;
+                        candidate = kPoint;
+                    }
+                }
+
+                return candidate == null ? null : table[candidate];
             }
 
             public override double[] derivative(double[] points)

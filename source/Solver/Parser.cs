@@ -210,10 +210,9 @@ namespace Solver
                     string temp = "";
                     table = new Dictionary<double[], double[]>();
 
-                    while(temp != null)
+                    temp = fs.ReadLine();
+                    while (temp != null)
                     {
-                        temp = fs.ReadLine();
-
                         var point = new double[N_Dimension];
                         var responce = new double[M_Dimension];
 
@@ -233,6 +232,8 @@ namespace Solver
                             responce[j] = double.Parse(strItems[N_Dimension + j]);
                         }
                         table.Add(point, responce);
+
+                        temp = fs.ReadLine();
                     }
                 }
             }
