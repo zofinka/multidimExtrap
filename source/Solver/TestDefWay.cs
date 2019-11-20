@@ -44,10 +44,10 @@ namespace Solver
             //Console.WriteLine("Test " + SinXCosY.name + " END in " + interAmount + " iterations");
 
             //133 iteration
-            Tests.SinXCosXCosY SinXCosXCosY = new Tests.SinXCosXCosY();
+            /*Tests.SinXCosXCosY SinXCosXCosY = new Tests.SinXCosXCosY();
             Console.WriteLine(SinXCosXCosY.name + " Test START");
             interAmount = test(SinXCosXCosY.configFile, SinXCosXCosY.pointFile, SinXCosXCosY);
-            Console.WriteLine(SinXCosXCosY.name + " Test END in " + interAmount + " iterations");
+            Console.WriteLine(SinXCosXCosY.name + " Test END in " + interAmount + " iterations");*/
 
             //14 interation
             //Tests.SinFromSumOnSum SinFromSumOnSum = new Tests.SinFromSumOnSum();
@@ -62,10 +62,10 @@ namespace Solver
             //Console.WriteLine(SqrtXSqrtY.name + " Test END in " + interAmount + " iterations");
 
             // interation
-            //Tests.LGFunc LGFunc = new Tests.LGFunc();
-            //Console.WriteLine(LGFunc.name + " Test START");
-            //interAmount = test(LGFunc.configFile, LGFunc.pointFile, LGFunc, LGFunc.tableFile);
-            //Console.WriteLine(LGFunc.name + " Test END in " + interAmount + " iterations");
+            Tests.LGFunc LGFunc = new Tests.LGFunc();
+            Console.WriteLine(LGFunc.name + " Test START");
+            interAmount = test(LGFunc.configFile, LGFunc.pointFile, LGFunc, LGFunc.tableFile);
+            Console.WriteLine(LGFunc.name + " Test END in " + interAmount + " iterations");
         }
 
         private int test(string configFile, string pointFile, Tests.AFunction function, string tableFile = null)

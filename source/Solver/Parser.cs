@@ -217,11 +217,11 @@ namespace Solver
                         var point = new double[N_Dimension];
                         var responce = new double[M_Dimension];
 
-                        string[] strItems = temp.Split(' ');
+                        string[] strItems = temp.Split(';');
 
                         if (strItems.Length != NM_Dimension)
                         {
-                            Console.WriteLine("The vector " + temp + " length is not equel function demention " + N_Dimension);
+                            Console.WriteLine("The vector " + temp + " length is not equel function demention " + NM_Dimension);
                             continue;
                         }
                         for (int j = 0; j < N_Dimension; j++)
