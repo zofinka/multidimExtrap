@@ -108,5 +108,29 @@ namespace Solver
                 if (pos < count[j] - 1) yield return index + rount[j];
             }
         }
+
+        public int prevNeighbours(int index, int os)
+        {
+            if (index < 0 || index >= Node.Length)
+                return -1;
+            int idx = index;
+            int pos = idx / rount[os];
+            idx = idx % rount[os];
+            if (pos > 0)
+                return index - rount[os];
+            return -1;
+        }
+
+        public int nextNeighbours(int index, int os)
+        {
+            if (index < 0 || index >= Node.Length)
+                return -1;
+            int idx = index;
+            int pos = idx / rount[os];
+            idx = idx % rount[os];
+            if (pos < count[os] - 1)
+                return index + rount[os];
+            return -1;
+        }
     }
 }

@@ -10,12 +10,15 @@ namespace Solver
     {
         const int NGRID = 100;
         int featureCount = 0;
+        int TreesCount = 100;
 
         public override void run()
         {
             int interAmount = 0;
-            Tests.AFunction[] functions = new Tests.AFunction[1] { new Tests.SinXCosY() };
+            Tests.AFunction[] functions = new Tests.AFunction[1] { new Tests.LGFunc() };
             MLAlgorithms.IMLAlgorithm cls = get_cls(functions);
+
+            //MLAlgorithms.IMLAlgorithm rg = get_rg(functions)
 
             /*Console.WriteLine("Square Area Function Test START");
             interAmount = testWithRandomForest(Tests.SquareArea.config, Tests.SquareArea.config, Tests.SquareArea.func, Tests.SquareArea.derivative);
@@ -25,10 +28,10 @@ namespace Solver
             interAmount = testWithRandomForest(Tests.SquaresProducts.configFile, Tests.SquaresProducts.pointFile, Tests.SquaresProducts.func, Tests.SquaresProducts.derivative);
             Console.WriteLine("Test " + Tests.SquaresProducts.name + " END in " + interAmount + " iterations");*/
 
-            Tests.SinXCosY SinXCosY = new Tests.SinXCosY();
-            Console.WriteLine("Test " + SinXCosY.name + " START");
-            interAmount = test(cls, SinXCosY.configFile, SinXCosY.pointFile, SinXCosY.func, SinXCosY.derivative);
-            Console.WriteLine("Test " + SinXCosY.name + " END in " + interAmount + " iterations");
+            //Tests.SinXCosY SinXCosY = new Tests.SinXCosY();
+            //Console.WriteLine("Test " + SinXCosY.name + " START");
+            //interAmount = test(cls, SinXCosY.configFile, SinXCosY.pointFile, SinXCosY.func, SinXCosY.derivative);
+            //Console.WriteLine("Test " + SinXCosY.name + " END in " + interAmount + " iterations");
 
             /*Console.WriteLine(Tests.SinXCosXCosY.name +  " Test START");
             interAmount = testWithRandomForest(Tests.SinXCosXCosY.configFile, Tests.SinXCosXCosY.pointFile, Tests.SinXCosXCosY.func, Tests.SinXCosXCosY.derivative);
@@ -37,16 +40,33 @@ namespace Solver
             /*Console.WriteLine(Tests.SinFromSumOnSum.name + " Test START");
             interAmount = testWithRandomForest(Tests.SinFromSumOnSum.configFile, Tests.SinFromSumOnSum.pointFile, Tests.SinFromSumOnSum.func, Tests.SinFromSumOnSum.derivative);
             Console.WriteLine(Tests.SinFromSumOnSum.name + " Test END in " + interAmount + " iterations");*/
+
+            //14 interation
+            Tests.SinFromSumOnSum SinFromSumOnSum = new Tests.SinFromSumOnSum();
+            Console.WriteLine(SinFromSumOnSum.name + " Test START");
+            interAmount = test(cls, SinFromSumOnSum.configFile, SinFromSumOnSum.pointFile, SinFromSumOnSum);
+            Console.WriteLine(SinFromSumOnSum.name + " Test END in " + interAmount + " iterations");
+
+            // interation
+            //Tests.LGFunc LGFunc = new Tests.LGFunc();
+            //Console.WriteLine(LGFunc.name + " Test START");
+            //interAmount = test(cls, LGFunc.configFile, LGFunc.pointFile, LGFunc, LGFunc.tableFile);
+            //Console.WriteLine(LGFunc.name + " Test END in " + interAmount + " iterations");
         }
 
-        private int test(MLAlgorithms.IMLAlgorithm cls, string configFile, string pointFile, Func<double[], double[]> func, Func<double[], double[]> derivativeFunc)
+        private int test(MLAlgorithms.IMLAlgorithm cls, string configFile, string pointFile, Tests.AFunction function, string tableFile = null)
         {
-            Parser parser = new Parser(configFile, pointFile);
+            Parser parser = new Parser(configFile, pointFile, tableFile);
+            if (tableFile != null)
+            {
+                function.table = parser.getTable();
+            }
             double[][] pointsArray = parser.Points.ToList().ToArray();
             int pointAmount = pointsArray.Length;
 
             int i = 0;
-            double maxErr = 10;
+            double maxErr = 100000000;
+            int totalPointsCount = 0;
             while (i < 100000000 && maxErr > parser.Approximation)
             {
                 Shepard model = new Shepard(parser.N_Dimension, pointsArray);
@@ -62,7 +82,7 @@ namespace Solver
                 {
                     double[] new_point = (double[])xx[j].Clone();
 
-                    var response = func(new_point);
+                    var response = function.func(new_point);
                     for (int k = 0; k < parser.M_Dimension; ++k)
                     {
                         new_point[parser.N_Dimension + k] = response[k];
@@ -80,7 +100,9 @@ namespace Solver
                     model.Calculate(new_points[j]);
                 }
 
+                //Нужно не максимальную ошибку считать, а среднюю.
                 double tempErr = 0;
+                double totalErr = 0.0;
                 for (int k = 0; k < new_points.Length; k++)
                 {
                     var realPoint = newPoints[pointAmount - parser.PredictionPointAmount + k];
@@ -104,17 +126,24 @@ namespace Solver
                     double err = (diffs.Sum() / diffs.Length);
 
                     Console.WriteLine(" \n " + err + " " + String.Join(", ", realFunctionVal) + " " + String.Join(", ", approxFunctionVal) + " \n ");
-                    if (err > tempErr)
-                    {
-                        tempErr = err;
-                    }
+                    //if (err > tempErr)
+                    //{
+                    //    tempErr = err;
+                    //}
+                    totalErr += err;
                     Console.WriteLine("f({0}) real val {1} predict val {2} err {3}", String.Join(", ", xx[k]), String.Join(", ", realFunctionVal), String.Join(", ", approxFunctionVal), err);
                 }
-                maxErr = tempErr;
+                maxErr = totalErr;
+                //maxErr = totalErr / new_points.Length;
+                totalPointsCount = pointsArray.Length;
                 i++;
             }
-            testResult(parser.N_Dimension, parser.M_Dimension, pointsArray, func);
-            Console.WriteLine(" Avg err " + calc_err(func, pointsArray.ToList(), parser));
+
+       
+            testResult(parser.N_Dimension, parser.M_Dimension, pointsArray, function.func);
+            Console.WriteLine("Calc err avg " + calc_err(function.func, pointsArray.ToList(), parser));
+            Console.WriteLine("{0} points was requested from the real function", totalPointsCount);
+
             return i;
         }
 
@@ -134,9 +163,33 @@ namespace Solver
             return cls;
         }
 
-        private double[] build_features(double[] point, IFunction model, Grid grid, double[] distToKnownPoints, double[][] knownPoints = null, int index = -1)
+        private MLAlgorithms.IMLAlgorithm get_rg(Tests.AFunction[] functions)
         {
-            this.featureCount = 4;
+            MLAlgorithms.LabeledData[] ldata = collect_samples(functions);
+            MLAlgorithms.IMLAlgorithm ml = new MLAlgorithms.RandomForest();
+            MLAlgorithms.RandomForestParams ps = new MLAlgorithms.RandomForestParams(ldata.ToArray(),
+                                                                                     ldata.Length    /* samples count */,
+                                                                                     featureCount   /* features count */,
+                                                                                     1              /* classes count */,
+                                                                                     TreesCount     /* trees count */,
+                                                                                     3              /* count of features to do split in a tree */,
+                                                                                     0.7            /* percent of a training set of samples  */
+                                                                                                    /* used to build individual trees. */);
+            
+
+            ml.train<double>(ps);
+
+            double trainModelPrecision;
+            ml.validate<double>(ldata.ToArray(), out trainModelPrecision);
+
+            Console.WriteLine("Model precision on training dataset: " + trainModelPrecision);
+
+            return ml;
+        }
+
+        private double[] build_features_old(double[] point, IFunction model, Grid grid, double[] distToKnownPoints, double[][] knownPoints = null, int index = -1)
+        {
+            this.featureCount = 5;
 
             // min, max in locality
             double maxNeighbours = double.MinValue;
@@ -145,26 +198,44 @@ namespace Solver
             {
                 double[] calcNeighbour = (double[])grid.Node[neighbour].Clone();
                 model.Calculate(calcNeighbour);
+
+                double calcNeighbourVal = 0;
+
+                for (int l = 0; l < model.M; ++l)
+                {
+                    calcNeighbourVal = calcNeighbour[model.N + l];
+                }
+                calcNeighbourVal = calcNeighbourVal / model.M;
+
                 if (calcNeighbour[calcNeighbour.Length - 1] < minNeighbours)
                 {
-                    minNeighbours = calcNeighbour[calcNeighbour.Length - 1];
+                    //minNeighbours = calcNeighbour[calcNeighbour.Length - 1];
+                    minNeighbours = calcNeighbourVal;
                 }
                 if (calcNeighbour[calcNeighbour.Length - 1] > maxNeighbours)
                 {
-                    maxNeighbours = calcNeighbour[calcNeighbour.Length - 1];
+                    //maxNeighbours = calcNeighbour[calcNeighbour.Length - 1];
+                    maxNeighbours = calcNeighbourVal;
                 }
             }
             // current val
-            double[] cuurentNode = (double[])grid.Node[index].Clone();
-            model.Calculate(cuurentNode);
-            double cuurentNodeVal = cuurentNode[cuurentNode.Length - 1];
-            if (cuurentNodeVal < minNeighbours)
+            double[] curentNode = (double[])grid.Node[index].Clone();
+            model.Calculate(curentNode);
+            double curentNodeVal = 0;
+
+            for (int l = 0; l < model.M; ++l)
             {
-                minNeighbours = cuurentNodeVal;
+                curentNodeVal = curentNode[model.N + l];
             }
-            if (cuurentNodeVal > maxNeighbours)
+            curentNodeVal = curentNodeVal / model.M;
+            
+            if (curentNodeVal < minNeighbours)
             {
-                maxNeighbours = cuurentNodeVal;
+                minNeighbours = curentNodeVal;
+            }
+            if (curentNodeVal > maxNeighbours)
+            {
+                maxNeighbours = curentNodeVal;
             }
 
             List<double[]> temp_points = new List<double[]>();
@@ -176,11 +247,198 @@ namespace Solver
             // build features vector
             double[] features = new double[featureCount];
             //features[0] = Math.Abs(cuurentNodeVal - maxNeighbours);
-            //features[1] = Math.Abs(minNeighbours - cuurentNodeVal);
-            features[0] = maxNeighbours - cuurentNodeVal;
-            features[1] = cuurentNodeVal - minNeighbours;
+            //features[1] = Math.Abs(minNeighbours - cuurentNodeVal);a
+            features[0] = maxNeighbours - curentNodeVal;
+            features[1] = curentNodeVal - minNeighbours;
             features[2] = distToKnownPoints[index];
             features[3] = check_new_aproximation((Shepard)model, new_model, grid, index);
+
+            return features;
+        }
+
+        private double calcVal(int M, int N, double[] point)
+        {
+            double val = 0;
+
+            for (int l = 0; l < M; ++l)
+            {
+                val = point[N + l];
+            }
+            val = val / M;
+
+            //return val;
+            return point[N + M - 1];
+        }
+
+        private double[] build_features(double[] point, IFunction model, Grid grid, double[] distToKnownPoints, double[][] knownPoints = null, int index = -1)
+        {
+            this.featureCount = 4;
+
+            Analyzer analyzer = new Analyzer(model, knownPoints);
+            analyzer.do_some_analyse();
+
+            //double[] monotonicNode = new double[model.N];
+            //for (int i = 0; i < model.N; i++)
+            //{
+            //    int nextIndex = grid.nextNeighbours(index, i);
+            //    int prevNextIndex = index;
+            //    bool isUpMonotone = true;
+            //    bool isDownMonotone = true;
+            //    bool monotone = true;
+            //    bool first = true;
+            //    while (monotone && nextIndex != -1)
+            //    {
+            //        if (analyzer.Domain(grid.Node[nextIndex]) != analyzer.Domain(grid.Node[prevNextIndex]))
+            //        {
+            //            if (first)
+            //            {
+            //                first = false;
+                            
+            //                if (calcVal(model.M, model.N, knownPoints[analyzer.Domain(grid.Node[nextIndex])]) < 
+            //                    calcVal(model.M, model.N, knownPoints[analyzer.Domain(grid.Node[prevNextIndex])]))
+            //                {
+            //                    isUpMonotone = false;
+            //                    isDownMonotone = true;
+            //                }
+            //                else
+            //                {
+            //                    isUpMonotone = true;
+            //                    isDownMonotone = false;
+            //                }
+
+            //            }
+            //            else
+            //            {
+            //                if (calcVal(model.M, model.N, knownPoints[analyzer.Domain(grid.Node[nextIndex])]) < 
+            //                    calcVal(model.M, model.N, knownPoints[analyzer.Domain(grid.Node[prevNextIndex])]) && !isDownMonotone)
+            //                {
+            //                    monotone = false;
+            //                    break;
+            //                }
+            //                if (calcVal(model.M, model.N, knownPoints[analyzer.Domain(grid.Node[nextIndex])]) >
+            //                    calcVal(model.M, model.N, knownPoints[analyzer.Domain(grid.Node[prevNextIndex])]) && !isUpMonotone)
+            //                {
+            //                    monotone = false;
+            //                    break;
+            //                }
+            //                monotonicNode[i]++;
+            //            }
+            //        }
+            //        prevNextIndex = nextIndex;
+            //        nextIndex = grid.nextNeighbours(prevNextIndex, i);
+            //    }
+
+
+            //    int prevIndex = grid.prevNeighbours(index, i);
+            //    int prevPrevIndex = index;
+            //    monotone = true;
+            //    first = true;
+            //    while (monotone && prevIndex != -1)
+            //    {
+            //        if (analyzer.Domain(grid.Node[prevIndex]) != analyzer.Domain(grid.Node[prevPrevIndex]))
+            //        {
+
+            //            if (calcVal(model.M, model.N, knownPoints[analyzer.Domain(grid.Node[prevIndex])]) > 
+            //                calcVal(model.M, model.N, knownPoints[analyzer.Domain(grid.Node[prevPrevIndex])]) && !isDownMonotone)
+            //            {
+            //                monotone = false;
+            //                break;
+            //            }
+            //            if (calcVal(model.M, model.N, knownPoints[analyzer.Domain(grid.Node[prevIndex])]) <
+            //                calcVal(model.M, model.N, knownPoints[analyzer.Domain(grid.Node[prevPrevIndex])]) && !isUpMonotone)
+            //            {
+            //                monotone = false;
+            //                break;
+            //            }
+            //            monotonicNode[i]++;
+            //        }
+            //        prevPrevIndex = prevIndex;
+            //        prevIndex = grid.prevNeighbours(prevPrevIndex, i);
+            //    }
+            //}
+
+
+            // min, max in locality
+            double maxNeighbours = double.MinValue;
+            double minNeighbours = double.MaxValue;
+            foreach (var neighbour in grid.Neighbours(index))
+            {
+                double[] calcNeighbour = (double[])grid.Node[neighbour].Clone();
+                model.Calculate(calcNeighbour);
+
+                double calcNeighbourVal = 0;
+
+                for (int l = 0; l < model.M; ++l)
+                {
+                    calcNeighbourVal = calcNeighbour[model.N + l];
+                }
+                calcNeighbourVal = calcNeighbourVal / model.M;
+
+                if (calcNeighbour[calcNeighbour.Length - 1] < minNeighbours)
+                {
+                    //minNeighbours = calcNeighbour[calcNeighbour.Length - 1];
+                    minNeighbours = calcNeighbourVal;
+                }
+                if (calcNeighbour[calcNeighbour.Length - 1] > maxNeighbours)
+                {
+                    //maxNeighbours = calcNeighbour[calcNeighbour.Length - 1];
+                    maxNeighbours = calcNeighbourVal;
+                }
+            }
+            // current val
+            double[] curentNode = (double[])grid.Node[index].Clone();
+            model.Calculate(curentNode);
+            double curentNodeVal = 0;
+
+            for (int l = 0; l < model.M; ++l)
+            {
+                curentNodeVal = curentNode[model.N + l];
+            }
+            curentNodeVal = curentNodeVal / model.M;
+
+            if (curentNodeVal < minNeighbours)
+            {
+                minNeighbours = curentNodeVal;
+            }
+            if (curentNodeVal > maxNeighbours)
+            {
+                maxNeighbours = curentNodeVal;
+            }
+
+            List<double[]> temp_points = new List<double[]>();
+            temp_points = knownPoints.ToList();
+            temp_points.RemoveAt(analyzer.Domain(grid.Node[index]));
+            Shepard new_model = new Shepard(model.N, temp_points.ToArray());
+            double[] old_model_point = (double[])grid.Node[index].Clone();
+            model.Calculate(old_model_point);
+            double[] new_model_point = (double[])grid.Node[index].Clone();
+            new_model.Calculate(new_model_point);
+
+            double err = 0;
+            for (int k = 0; k < model.M; ++k)
+            {
+                err = Math.Abs(old_model_point[model.N + k] - new_model_point[model.N + k]);
+            }
+
+            err = err / model.M;
+
+            // build features vector
+
+            double[] features = new double[featureCount];
+            features[0] = Math.Abs(curentNodeVal - maxNeighbours);
+            features[1] = Math.Abs(minNeighbours - curentNodeVal);
+            //features[0] = maxNeighbours - curentNodeVal;
+            //features[1] = curentNodeVal - minNeighbours;
+            //ok
+
+
+            //for (int i = 0; i < model.N; i++)
+            //{
+            //    features[i] = monotonicNode[i];
+            //}
+            features[2] = distToKnownPoints[index];
+            features[3] = err;
+            //features[4] = monotonicNode[0];
 
             return features;
         }
@@ -190,7 +448,11 @@ namespace Solver
             List<MLAlgorithms.LabeledData> ldata = new List<MLAlgorithms.LabeledData>();
             foreach (Tests.AFunction f in functions)
             {
-                Parser p = new Parser(f.configFile, f.pointFile);
+                Parser p = new Parser(f.configFile, f.pointFile, f.tableFile);
+                if (f.tableFile != null)
+                {
+                    f.table = p.getTable();
+                }
                 int j = 0;
                 while (j < 1)
                 {
@@ -223,12 +485,13 @@ namespace Solver
                         double[] diffs = realFunctionVal.Zip(approxFunctionVal, (d1, d2) => Math.Abs(d1 - d2)).ToArray();
 
                         double err = (diffs.Sum() / diffs.Length);
-                        
+
                         int pointClass = 0;
                         if (err > p.Approximation)
                         {
                             pointClass = 1;
-                        }                                                                                               
+                        }
+                        //double pointClass = err;
 
                         double[] features = build_features(grid.Node[i], def_model, grid, dist, points.ToArray(), i);
                         ldata.Add(new MLAlgorithms.LabeledData(features, pointClass));

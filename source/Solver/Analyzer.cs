@@ -44,6 +44,13 @@ namespace Solver
             analyse_error();
         }
 
+        public void do_some_analyse()
+        {
+            int[] count = new int[N]; for (int i = 0; i < N; i++) count[i] = (Min[i] == Max[i]) ? 1 : NGRID;
+            create_grid(count);
+            analyse_voronoi();
+        }
+
         public void do_best_ever_analyse()
         {
             int[] count = new int[N]; for (int i = 0; i < N; i++) count[i] = (Min[i] == Max[i]) ? 1 : NGRID;
@@ -658,7 +665,7 @@ namespace Solver
                     handledDomains[dom] = 1;
                 }
             }
-
+             
             candidates = bestCandidates.ToArray();
             Console.WriteLine("Формирование списка кандидатов из {0}", candidates.Length);
             candidates = Tools.Sub(candidates, 0, candidates.Length);
