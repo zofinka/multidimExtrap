@@ -140,12 +140,13 @@ namespace Solver
                 Console.WriteLine("Good pr " + goodPr);
 
                 double[][] xx = analyzer.Result;
-                pointAmount = pointAmount + parser.PredictionPointAmount;
-                points = getNewPoints(points, analyzer.Result, parser.PredictionPointAmount, parser.N_Dimension, func);
+                int newPointsAmount = Math.Min(parser.PredictionPointAmount, xx.Length);
+                pointAmount = pointAmount + newPointsAmount;
+                points = getNewPoints(points, analyzer.Result, newPointsAmount, parser.N_Dimension, func);
 
 
-                double[][] new_points = new double[parser.PredictionPointAmount][];
-                for (int j = 0; j < parser.PredictionPointAmount; j++)
+                double[][] new_points = new double[newPointsAmount][];
+                for (int j = 0; j < newPointsAmount; j++)
                 {
                     new_points[j] = new double[xx[j].Length];
                     Array.Copy(xx[j], new_points[j], xx[j].Length);
@@ -155,13 +156,13 @@ namespace Solver
                 double tempErr = 0;
                 for (int k = 0; k < new_points.Length; k++)
                 {
-                    double err = Math.Abs(points[pointAmount - parser.PredictionPointAmount + k][parser.N_Dimension] - new_points[k][parser.N_Dimension]);
-                    //Console.WriteLine(" \n " + (points[pointAmount - parser.PredictionPointAmount + k][parser.N_Dimension] - new_points[k][parser.N_Dimension]) + " " + points[pointAmount - parser.PredictionPointAmount + k][parser.N_Dimension] + " " + new_points[k][parser.N_Dimension] + " \n ");
+                    double err = Math.Abs(points[pointAmount - newPointsAmount + k][parser.N_Dimension] - new_points[k][parser.N_Dimension]);
+                    //Console.WriteLine(" \n " + (points[pointAmount - newPointsAmount + k][parser.N_Dimension] - new_points[k][parser.N_Dimension]) + " " + points[pointAmount - newPointsAmount + k][parser.N_Dimension] + " " + new_points[k][parser.N_Dimension] + " \n ");
                     if (err > tempErr)
                     {
                         tempErr = err;
                     }
-                   // Console.WriteLine("f({0}) real val {1} predict val {2} err {3}", String.Join(", ", xx[k]), points[pointAmount - parser.PredictionPointAmount + k][parser.N_Dimension], new_points[k][parser.N_Dimension], err);
+                   // Console.WriteLine("f({0}) real val {1} predict val {2} err {3}", String.Join(", ", xx[k]), points[pointAmount - newPointsAmount + k][parser.N_Dimension], new_points[k][parser.N_Dimension], err);
                 }
                 maxErr = tempErr;
                 i++;

@@ -22,10 +22,10 @@ namespace Solver
             collect_samples(functions);
             MLAlgorithms.IMLAlgorithm rg = get_rg();
 
-            Tests.SinXCosY SinXCosY = new Tests.SinXCosY();
-            Console.WriteLine(SinXCosY.name + " Test START");
-            interAmount = test(rg, SinXCosY);
-            Console.WriteLine(SinXCosY.name + " Test END in " + interAmount + " iterations");
+            //Tests.SinXCosY SinXCosY = new Tests.SinXCosY();
+            //Console.WriteLine(SinXCosY.name + " Test START");
+            //interAmount = test(rg, SinXCosY);
+            //Console.WriteLine(SinXCosY.name + " Test END in " + interAmount + " iterations");
 
             /*Tests.SinXCosXCosY SinXCosXCosY = new Tests.SinXCosXCosY();
             Console.WriteLine(SinXCosXCosY.name + " Test START");
@@ -36,6 +36,12 @@ namespace Solver
             Console.WriteLine(SinFromSumOnSum.name + " Test START");
             interAmount = test(cls, SinFromSumOnSum);
             Console.WriteLine(SinFromSumOnSum.name + " Test END in " + interAmount + " iterations");*/
+
+            // interation
+            Tests.LGFunc LGFunc = new Tests.LGFunc();
+            Console.WriteLine(LGFunc.name + " Test START");
+            interAmount = test(rg, LGFunc, LGFunc.tableFile);
+            Console.WriteLine(LGFunc.name + " Test END in " + interAmount + " iterations");
 
         }
 
@@ -162,6 +168,10 @@ namespace Solver
             foreach (Tests.AFunction f in functions)
             {
                 Parser p = new Parser(f.configFile, f.pointFile);
+                if (f.tableFile != null)
+                {
+                    f.table = p.getTable();
+                }
                 int j = 0;
                 while (j < 5)
                 {
@@ -268,7 +278,10 @@ namespace Solver
         
 
         private double[] build_features(double[] point, IFunction model, Grid grid, double[] distToKnownPoints, double[][] knownPoints = null, int index = -1)
-        {
+        { 
+            // на сколько образующая домен точка близка
+            // сколько до и после монотонно
+            // расстояние до известной точки
             featureCount = 3 + (point.Length - 1);
             double[] features = new double[featureCount];
             // min, max in locality
@@ -308,6 +321,63 @@ namespace Solver
             
             features[0] = Math.Abs(curentNodeVal - maxNeighboursVal);
           //  features[1] = distanceX(curentNode, maxNeighbours, model.N);
+            features[1] = Math.Abs(curentNodeVal - minNeighboursVal);
+            features[2] = distToKnownPoints[index];
+
+            for (int i = 0; i < point.Length - 1; ++i)
+            {
+                features[3 + i] = point[i];
+            }
+            //  features[3] = distanceX(curentNode, maxNeighbours, model.N);
+
+            return features;
+        }
+
+        private double[] build_features_new(double[] point, IFunction model, Grid grid, double[] distToKnownPoints, double[][] knownPoints = null, int index = -1)
+        {
+            // на сколько образующая домен точка близка
+            // сколько до и после монотонно 
+            // расстояние до известной точки 
+
+            featureCount = 3 + (point.Length - 1);
+            double[] features = new double[featureCount];
+            // min, max in locality
+            double maxNeighboursVal = double.MinValue;
+            double[] maxNeighbours = new double[point.Length];
+            double minNeighboursVal = double.MaxValue;
+            double[] minNeighbours = new double[point.Length];
+            grid.ToIndex(point, out index);
+            foreach (var neighbour in grid.Neighbours(index))
+            {
+                double[] calcNeighbour = (double[])grid.Node[neighbour].Clone();
+                model.Calculate(calcNeighbour);
+                if (calcNeighbour[calcNeighbour.Length - 1] < minNeighboursVal)
+                {
+                    minNeighboursVal = calcNeighbour[calcNeighbour.Length - 1];
+                    minNeighbours = (double[])calcNeighbour.Clone();
+                }
+                if (calcNeighbour[calcNeighbour.Length - 1] > maxNeighboursVal)
+                {
+                    maxNeighboursVal = calcNeighbour[calcNeighbour.Length - 1];
+                    maxNeighbours = (double[])calcNeighbour.Clone();
+                }
+            }
+            // current val
+            double[] curentNode = (double[])grid.Node[index].Clone();
+            model.Calculate(curentNode);
+            double curentNodeVal = curentNode[curentNode.Length - 1];
+            if (curentNodeVal < minNeighboursVal)
+            {
+                minNeighboursVal = curentNodeVal;
+            }
+            if (curentNodeVal > maxNeighboursVal)
+            {
+                maxNeighboursVal = curentNodeVal;
+            }
+
+
+            features[0] = Math.Abs(curentNodeVal - maxNeighboursVal);
+            //  features[1] = distanceX(curentNode, maxNeighbours, model.N);
             features[1] = Math.Abs(curentNodeVal - minNeighboursVal);
             features[2] = distToKnownPoints[index];
 

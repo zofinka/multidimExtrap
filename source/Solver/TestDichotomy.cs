@@ -10,7 +10,7 @@ namespace Solver
     {
         override public void run()
         {
-            Console.WriteLine("TESTS: Dichotomy way\n");
+            //Console.WriteLine("TESTS: Dichotomy way\n");
             int interAmount;
 
             // 1 iteration on def algorithm 

@@ -93,9 +93,9 @@ namespace Solver
             {
                 Shepard model = new Shepard(parser.N_Dimension, points);
                 Analyzer analyzer = new Analyzer(model, points);
-                //analyzer.do_default_analyse();
+                analyzer.do_default_analyse();
                 //analyzer.do_best_ever_analyse();
-                analyzer.do_quicker_analyse();
+                //analyzer.do_quicker_analyse();
                 double[][] xx = analyzer.Result;
 
                 int predictionPointAmount = Math.Min(parser.PredictionPointAmount, xx.Length);
@@ -144,8 +144,8 @@ namespace Solver
                     //totalErr += err;
                     Console.WriteLine("f({0}) real val {1} predict val {2} err {3}", String.Join(", ", xx[k]), String.Join(", ", realFunctionVal), String.Join(", ", approxFunctionVal), err);
                 }
-                maxErr = tempErr;
-               /// maxErr = totalErr / new_points.Length;
+                maxErr = totalErr;
+                //maxErr = totalErr / new_points.Length;
                 i++;
                 totalPointsCount = points.Length;
 

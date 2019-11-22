@@ -44,6 +44,13 @@ namespace Solver
             analyse_error();
         }
 
+        public void do_some_analyse()
+        {
+            int[] count = new int[N]; for (int i = 0; i < N; i++) count[i] = (Min[i] == Max[i]) ? 1 : NGRID;
+            create_grid(count);
+            analyse_voronoi();
+        }
+
         public void do_best_ever_analyse()
         {
             int[] count = new int[N]; for (int i = 0; i < N; i++) count[i] = (Min[i] == Max[i]) ? 1 : NGRID;
@@ -407,16 +414,6 @@ namespace Solver
                 ldata[i] = new MLAlgorithms.LabeledData(features, pointClass);
                 featureCount = features.Length;
             }
-<<<<<<< HEAD
-            //for(int i = 0; i < xf.Length; i++)
-            //{
-            //    double[] feature = build_fetures_from_existing_points(i, calcDerivative);
-            //    ldata[grid.Node.Length + i] = new MLAlgorithms.LabeledData(feature, 0);
-            //    featureCount = feature.Length;
-            //}
-=======
-
->>>>>>> 27c7b8e455fc6dcbe52d139e126e81ef3190f90c
 
 
             MLAlgorithms.IMLAlgorithm cls = new MLAlgorithms.RandomForest();
@@ -675,10 +672,7 @@ namespace Solver
                     }
                 }
             }
-
-
-
-
+             
             candidates = bestCandidates.ToArray();
             Console.WriteLine("Формирование списка кандидатов из {0}", candidates.Length);
             candidates = Tools.Sub(candidates, 0, candidates.Length);
