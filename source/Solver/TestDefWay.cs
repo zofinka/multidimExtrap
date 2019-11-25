@@ -44,10 +44,10 @@ namespace Solver
             Console.WriteLine("Test " + SinXCosY.name + " END in " + interAmount + " iterations");
 
             //133 iteration
-            /*Tests.SinXCosXCosY SinXCosXCosY = new Tests.SinXCosXCosY();
+            Tests.SinXCosXCosY SinXCosXCosY = new Tests.SinXCosXCosY();
             Console.WriteLine(SinXCosXCosY.name + " Test START");
             interAmount = test(SinXCosXCosY.configFile, SinXCosXCosY.pointFile, SinXCosXCosY);
-            Console.WriteLine(SinXCosXCosY.name + " Test END in " + interAmount + " iterations");*/
+            Console.WriteLine(SinXCosXCosY.name + " Test END in " + interAmount + " iterations");
 
             //14 interation
             //Tests.SinFromSumOnSum SinFromSumOnSum = new Tests.SinFromSumOnSum();
@@ -135,13 +135,12 @@ namespace Solver
                     double[] diffs = realFunctionVal.Zip(approxFunctionVal, (d1, d2) => Math.Abs(d1 - d2)).ToArray();
 
                     double err = (diffs.Sum() / diffs.Length);
-
                     //Console.WriteLine(" \n " + err + " " + String.Join(", ", realFunctionVal) + " " + String.Join(", ", approxFunctionVal) + " \n ");
-                    //if (err > tempErr)
-                    //{
-                    //    tempErr = err;
-                    //}
-                    totalErr += err;
+                    if (err > tempErr)
+                    {
+                       totalErr = err;
+                    }
+                    // totalErr += err;
                     //Console.WriteLine("f({0}) real val {1} predict val {2} err {3}", String.Join(", ", xx[k]), String.Join(", ", realFunctionVal), String.Join(", ", approxFunctionVal), err);
                     //Console.WriteLine("{0};{1};{2};{3}", String.Join(", ", xx[k]), String.Join(", ", realFunctionVal));
                     Console.WriteLine("{0};{1}", String.Join(";", xx[k]), String.Join(";", realFunctionVal));

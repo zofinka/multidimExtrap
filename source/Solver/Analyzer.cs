@@ -414,16 +414,6 @@ namespace Solver
                 ldata[i] = new MLAlgorithms.LabeledData(features, pointClass);
                 featureCount = features.Length;
             }
-<<<<<<< HEAD
-            //for(int i = 0; i < xf.Length; i++)
-            //{
-            //    double[] feature = build_fetures_from_existing_points(i, calcDerivative);
-            //    ldata[grid.Node.Length + i] = new MLAlgorithms.LabeledData(feature, 0);
-            //    featureCount = feature.Length;
-            //}
-=======
-
->>>>>>> 27c7b8e455fc6dcbe52d139e126e81ef3190f90c
 
 
             MLAlgorithms.IMLAlgorithm cls = new MLAlgorithms.RandomForest();
@@ -647,7 +637,8 @@ namespace Solver
             }
             var sortedCandidates = candidatesTuples.OrderByDescending((t) => t.Item2).ToList();
 
-            //Console.WriteLine("Выбор лучших кандидатов среди упорядоченных {0}:", candidates.Length);
+            double[] step = grid.step;
+
             List<int> bestCandidates = new List<int>();
             int firstBestCandidate = sortedCandidates[0].Item1;
             bestCandidates.Add(firstBestCandidate);
@@ -661,8 +652,22 @@ namespace Solver
                 int dom = domain[candidateIndex];
                 if (handledDomains[dom] == 0)
                 {
-                    bestCandidates.Add(candidateIndex);
-                    handledDomains[dom] = 1;
+                    bool far = true;
+                    foreach (var otherCandIndex in bestCandidates)
+                    {
+                        var diffs = grid.Node[candidateIndex].Zip(grid.Node[otherCandIndex], (d1, d2) => Math.Abs(d1 - d2)).ToArray();
+
+                        for (int j = 0; j < this.func.N; ++j)
+                        {
+                            far &= (Math.Abs(diffs[j] - step[j]) >= Math.Pow(10, -3));
+                        }
+                    }
+
+                    if (far)
+                    {
+                        bestCandidates.Add(candidateIndex);
+                        handledDomains[dom] = 1;
+                    }
                 }
             }
              
@@ -824,30 +829,30 @@ namespace Solver
 
         private void analyse_with_dichotomy()
         {
-        //    List<Tuple<double[], double, bool, double>> middles = new List<Tuple<double[], double, bool, double>();
+            List<double[]> middles = new List<double[]>();
 
-        //    for (int i = 0; i < xf.Length; ++i)
-        //    {
-        //        foreach (var n in graph[i])
-        //        {
-        //            if (n != i)
-        //            {
-        //                double[] middle = new double[xf[i].Length];
-        //                for (int j = 0; j < xf[i].Length; ++j)
-        //                {
-        //                    middle[j] = (xf[i][j] + xf[n][j]) / 2.0;
-        //                }
+            for (int i = 0; i < xf.Length; ++i)
+            {
+                foreach (var n in graph[i])
+                {
+                    if (n != i)
+                    {
+                        double[] middle = new double[xf[i].Length];
+                        for (int j = 0; j < xf[i].Length; ++j)
+                        {
+                            middle[j] = (xf[i][j] + xf[n][j]) / 2.0;
+                        }
 
-        //                double dist = distanceX()
-        //                if (!middles.Contains(middle))
-        //                {
-        //                    middles.Add(middle);
-        //                }
-        //            }
-        //        }
-        //    }
+                      //  double dist = distanceX()
+                        if (!middles.Contains(middle))
+                        {
+                            middles.Add(middle);
+                        }
+                    }
+                }
+            }
 
-        //    xfcandidates = middles.ToArray();
+            xfcandidates = middles.ToArray();
         }
 
         private void analyse_all_error()
