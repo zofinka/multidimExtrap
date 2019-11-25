@@ -11,7 +11,7 @@ namespace Solver
         class SinXCosY: Tests.AFunction
         {
             public override string configFile { get { return @"..\..\..\test_data\12.sincos\config.cfg"; } }
-            public override string pointFile { get { return @"..\..\..\test_data\12.sincos\points_new.txt"; } }
+            public override string pointFile { get { return @"..\..\..\test_data\12.sincos\points.txt"; } }
             public override string name { get { return "SinCon sin(x1) * con(x2) "; } }
 
             public override double[] func(double[] points)

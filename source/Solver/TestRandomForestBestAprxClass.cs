@@ -280,8 +280,8 @@ namespace Solver
         private double[] build_features(double[] point, IFunction model, Grid grid, double[] distToKnownPoints, double[][] knownPoints = null, int index = -1)
         { 
             // на сколько образующая домен точка близка
-            // сколько до и после монотонно
-            // расстояние до известной точки
+            // сколько до и после монотонно 
+            // расстояние до известной точки 
             featureCount = 3 + (point.Length - 1);
             double[] features = new double[featureCount];
             // min, max in locality

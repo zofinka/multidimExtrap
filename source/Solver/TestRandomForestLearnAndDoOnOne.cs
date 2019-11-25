@@ -16,21 +16,23 @@ namespace Solver
         {
             int interAmount = 0;
             Tests.AFunction[] functions = new Tests.AFunction[1] { new Tests.LGFunc() };
-            MLAlgorithms.IMLAlgorithm cls = get_cls(functions);
+            //MLAlgorithms.IMLAlgorithm cls = get_cls(functions);
 
-            //MLAlgorithms.IMLAlgorithm rg = get_rg(functions)
+            MLAlgorithms.IMLAlgorithm rg = get_rg(functions);
 
             /*Console.WriteLine("Square Area Function Test START");
             interAmount = testWithRandomForest(Tests.SquareArea.config, Tests.SquareArea.config, Tests.SquareArea.func, Tests.SquareArea.derivative);
             Console.WriteLine("Square Area Function Test END in " + interAmount + " iterations");*/
 
-            /*Console.WriteLine("Test " + Tests.SquaresProducts.name + " START");
-            interAmount = testWithRandomForest(Tests.SquaresProducts.configFile, Tests.SquaresProducts.pointFile, Tests.SquaresProducts.func, Tests.SquaresProducts.derivative);
-            Console.WriteLine("Test " + Tests.SquaresProducts.name + " END in " + interAmount + " iterations");*/
+            //126 interation
+            Tests.SquaresProducts SquaresProducts = new Tests.SquaresProducts();
+            Console.WriteLine("Test " + SquaresProducts.name + " START");
+            interAmount = test(rg, SquaresProducts.configFile, SquaresProducts.pointFile, SquaresProducts);
+            Console.WriteLine("Test " + SquaresProducts.name + " END in " + interAmount + " iterations");
 
             //Tests.SinXCosY SinXCosY = new Tests.SinXCosY();
             //Console.WriteLine("Test " + SinXCosY.name + " START");
-            //interAmount = test(cls, SinXCosY.configFile, SinXCosY.pointFile, SinXCosY.func, SinXCosY.derivative);
+            //interAmount = test(rg, SinXCosY.configFile, SinXCosY.pointFile, SinXCosY);
             //Console.WriteLine("Test " + SinXCosY.name + " END in " + interAmount + " iterations");
 
             /*Console.WriteLine(Tests.SinXCosXCosY.name +  " Test START");
@@ -42,15 +44,15 @@ namespace Solver
             Console.WriteLine(Tests.SinFromSumOnSum.name + " Test END in " + interAmount + " iterations");*/
 
             //14 interation
-            Tests.SinFromSumOnSum SinFromSumOnSum = new Tests.SinFromSumOnSum();
-            Console.WriteLine(SinFromSumOnSum.name + " Test START");
-            interAmount = test(cls, SinFromSumOnSum.configFile, SinFromSumOnSum.pointFile, SinFromSumOnSum);
-            Console.WriteLine(SinFromSumOnSum.name + " Test END in " + interAmount + " iterations");
+            //Tests.SinFromSumOnSum SinFromSumOnSum = new Tests.SinFromSumOnSum();
+            //Console.WriteLine(SinFromSumOnSum.name + " Test START");
+            //interAmount = test(cls, SinFromSumOnSum.configFile, SinFromSumOnSum.pointFile, SinFromSumOnSum);
+            //Console.WriteLine(SinFromSumOnSum.name + " Test END in " + interAmount + " iterations");
 
             // interation
             //Tests.LGFunc LGFunc = new Tests.LGFunc();
             //Console.WriteLine(LGFunc.name + " Test START");
-            //interAmount = test(cls, LGFunc.configFile, LGFunc.pointFile, LGFunc, LGFunc.tableFile);
+            //interAmount = test(rg, LGFunc.configFile, LGFunc.pointFile, LGFunc, LGFunc.tableFile);
             //Console.WriteLine(LGFunc.name + " Test END in " + interAmount + " iterations");
         }
 
@@ -125,13 +127,14 @@ namespace Solver
 
                     double err = (diffs.Sum() / diffs.Length);
 
-                    Console.WriteLine(" \n " + err + " " + String.Join(", ", realFunctionVal) + " " + String.Join(", ", approxFunctionVal) + " \n ");
+                    //Console.WriteLine(" \n " + err + " " + String.Join(", ", realFunctionVal) + " " + String.Join(", ", approxFunctionVal) + " \n ");
                     //if (err > tempErr)
                     //{
                     //    tempErr = err;
                     //}
                     totalErr += err;
-                    Console.WriteLine("f({0}) real val {1} predict val {2} err {3}", String.Join(", ", xx[k]), String.Join(", ", realFunctionVal), String.Join(", ", approxFunctionVal), err);
+                    //Console.WriteLine("f({0}) real val {1} predict val {2} err {3}", String.Join(", ", xx[k]), String.Join(", ", realFunctionVal), String.Join(", ", approxFunctionVal), err);
+                    Console.WriteLine("{0};{1}", String.Join(";", xx[k]), String.Join(";", realFunctionVal));
                 }
                 maxErr = totalErr;
                 //maxErr = totalErr / new_points.Length;
@@ -258,16 +261,24 @@ namespace Solver
 
         private double calcVal(int M, int N, double[] point)
         {
+            //double val = 0;
+
+            //for (int l = 0; l < M; ++l)
+            //{
+            //    val += point[N + l];
+            //}
+            //val = val / M;
+
             double val = 0;
 
             for (int l = 0; l < M; ++l)
             {
-                val = point[N + l];
+                val += Math.Pow(point[N + l], 2);
             }
-            val = val / M;
 
             //return val;
-            return point[N + M - 1];
+            return Math.Sqrt(val);
+            //return point[N + M - 1];
         }
 
         private double[] build_features(double[] point, IFunction model, Grid grid, double[] distToKnownPoints, double[][] knownPoints = null, int index = -1)
@@ -277,85 +288,85 @@ namespace Solver
             Analyzer analyzer = new Analyzer(model, knownPoints);
             analyzer.do_some_analyse();
 
-            //double[] monotonicNode = new double[model.N];
-            //for (int i = 0; i < model.N; i++)
-            //{
-            //    int nextIndex = grid.nextNeighbours(index, i);
-            //    int prevNextIndex = index;
-            //    bool isUpMonotone = true;
-            //    bool isDownMonotone = true;
-            //    bool monotone = true;
-            //    bool first = true;
-            //    while (monotone && nextIndex != -1)
-            //    {
-            //        if (analyzer.Domain(grid.Node[nextIndex]) != analyzer.Domain(grid.Node[prevNextIndex]))
-            //        {
-            //            if (first)
-            //            {
-            //                first = false;
-                            
-            //                if (calcVal(model.M, model.N, knownPoints[analyzer.Domain(grid.Node[nextIndex])]) < 
-            //                    calcVal(model.M, model.N, knownPoints[analyzer.Domain(grid.Node[prevNextIndex])]))
-            //                {
-            //                    isUpMonotone = false;
-            //                    isDownMonotone = true;
-            //                }
-            //                else
-            //                {
-            //                    isUpMonotone = true;
-            //                    isDownMonotone = false;
-            //                }
+            double[] monotonicNode = new double[model.N];
+            for (int i = 0; i < model.N; i++)
+            {
+                int nextIndex = grid.nextNeighbours(index, i);
+                int prevNextIndex = index;
+                bool isUpMonotone = true;
+                bool isDownMonotone = true;
+                bool monotone = true;
+                bool first = true;
+                while (monotone && nextIndex != -1)
+                {
+                    if (analyzer.Domain(grid.Node[nextIndex]) != analyzer.Domain(grid.Node[prevNextIndex]))
+                    {
+                        if (first)
+                        {
+                            first = false;
 
-            //            }
-            //            else
-            //            {
-            //                if (calcVal(model.M, model.N, knownPoints[analyzer.Domain(grid.Node[nextIndex])]) < 
-            //                    calcVal(model.M, model.N, knownPoints[analyzer.Domain(grid.Node[prevNextIndex])]) && !isDownMonotone)
-            //                {
-            //                    monotone = false;
-            //                    break;
-            //                }
-            //                if (calcVal(model.M, model.N, knownPoints[analyzer.Domain(grid.Node[nextIndex])]) >
-            //                    calcVal(model.M, model.N, knownPoints[analyzer.Domain(grid.Node[prevNextIndex])]) && !isUpMonotone)
-            //                {
-            //                    monotone = false;
-            //                    break;
-            //                }
-            //                monotonicNode[i]++;
-            //            }
-            //        }
-            //        prevNextIndex = nextIndex;
-            //        nextIndex = grid.nextNeighbours(prevNextIndex, i);
-            //    }
+                            if (calcVal(model.M, model.N, knownPoints[analyzer.Domain(grid.Node[nextIndex])]) <
+                                calcVal(model.M, model.N, knownPoints[analyzer.Domain(grid.Node[prevNextIndex])]))
+                            {
+                                isUpMonotone = false;
+                                isDownMonotone = true;
+                            }
+                            else
+                            {
+                                isUpMonotone = true;
+                                isDownMonotone = false;
+                            }
+
+                        }
+                        else
+                        {
+                            if (calcVal(model.M, model.N, knownPoints[analyzer.Domain(grid.Node[nextIndex])]) <
+                                calcVal(model.M, model.N, knownPoints[analyzer.Domain(grid.Node[prevNextIndex])]) && !isDownMonotone)
+                            {
+                                monotone = false;
+                                break;
+                            }
+                            if (calcVal(model.M, model.N, knownPoints[analyzer.Domain(grid.Node[nextIndex])]) >
+                                calcVal(model.M, model.N, knownPoints[analyzer.Domain(grid.Node[prevNextIndex])]) && !isUpMonotone)
+                            {
+                                monotone = false;
+                                break;
+                            }
+                            monotonicNode[i]++;
+                        }
+                    }
+                    prevNextIndex = nextIndex;
+                    nextIndex = grid.nextNeighbours(prevNextIndex, i);
+                }
 
 
-            //    int prevIndex = grid.prevNeighbours(index, i);
-            //    int prevPrevIndex = index;
-            //    monotone = true;
-            //    first = true;
-            //    while (monotone && prevIndex != -1)
-            //    {
-            //        if (analyzer.Domain(grid.Node[prevIndex]) != analyzer.Domain(grid.Node[prevPrevIndex]))
-            //        {
+                int prevIndex = grid.prevNeighbours(index, i);
+                int prevPrevIndex = index;
+                monotone = true;
+                first = true;
+                while (monotone && prevIndex != -1)
+                {
+                    if (analyzer.Domain(grid.Node[prevIndex]) != analyzer.Domain(grid.Node[prevPrevIndex]))
+                    {
 
-            //            if (calcVal(model.M, model.N, knownPoints[analyzer.Domain(grid.Node[prevIndex])]) > 
-            //                calcVal(model.M, model.N, knownPoints[analyzer.Domain(grid.Node[prevPrevIndex])]) && !isDownMonotone)
-            //            {
-            //                monotone = false;
-            //                break;
-            //            }
-            //            if (calcVal(model.M, model.N, knownPoints[analyzer.Domain(grid.Node[prevIndex])]) <
-            //                calcVal(model.M, model.N, knownPoints[analyzer.Domain(grid.Node[prevPrevIndex])]) && !isUpMonotone)
-            //            {
-            //                monotone = false;
-            //                break;
-            //            }
-            //            monotonicNode[i]++;
-            //        }
-            //        prevPrevIndex = prevIndex;
-            //        prevIndex = grid.prevNeighbours(prevPrevIndex, i);
-            //    }
-            //}
+                        if (calcVal(model.M, model.N, knownPoints[analyzer.Domain(grid.Node[prevIndex])]) >
+                            calcVal(model.M, model.N, knownPoints[analyzer.Domain(grid.Node[prevPrevIndex])]) && !isDownMonotone)
+                        {
+                            monotone = false;
+                            break;
+                        }
+                        if (calcVal(model.M, model.N, knownPoints[analyzer.Domain(grid.Node[prevIndex])]) <
+                            calcVal(model.M, model.N, knownPoints[analyzer.Domain(grid.Node[prevPrevIndex])]) && !isUpMonotone)
+                        {
+                            monotone = false;
+                            break;
+                        }
+                        monotonicNode[i]++;
+                    }
+                    prevPrevIndex = prevIndex;
+                    prevIndex = grid.prevNeighbours(prevPrevIndex, i);
+                }
+            }
 
 
             // min, max in locality
@@ -366,13 +377,7 @@ namespace Solver
                 double[] calcNeighbour = (double[])grid.Node[neighbour].Clone();
                 model.Calculate(calcNeighbour);
 
-                double calcNeighbourVal = 0;
-
-                for (int l = 0; l < model.M; ++l)
-                {
-                    calcNeighbourVal = calcNeighbour[model.N + l];
-                }
-                calcNeighbourVal = calcNeighbourVal / model.M;
+                double calcNeighbourVal = calcVal(model.M, model.N, calcNeighbour);
 
                 if (calcNeighbour[calcNeighbour.Length - 1] < minNeighbours)
                 {
@@ -388,13 +393,7 @@ namespace Solver
             // current val
             double[] curentNode = (double[])grid.Node[index].Clone();
             model.Calculate(curentNode);
-            double curentNodeVal = 0;
-
-            for (int l = 0; l < model.M; ++l)
-            {
-                curentNodeVal = curentNode[model.N + l];
-            }
-            curentNodeVal = curentNodeVal / model.M;
+            double curentNodeVal = calcVal(model.M, model.N, curentNode);
 
             if (curentNodeVal < minNeighbours)
             {
@@ -486,12 +485,12 @@ namespace Solver
 
                         double err = (diffs.Sum() / diffs.Length);
 
-                        int pointClass = 0;
-                        if (err > p.Approximation)
-                        {
-                            pointClass = 1;
-                        }
-                        //double pointClass = err;
+                        //int pointClass = 0;
+                        //if (err > p.Approximation)
+                        //{
+                        //    pointClass = 1;
+                        //}
+                        double pointClass = err;
 
                         double[] features = build_features(grid.Node[i], def_model, grid, dist, points.ToArray(), i);
                         ldata.Add(new MLAlgorithms.LabeledData(features, pointClass));

@@ -472,7 +472,6 @@ namespace Solver
                 //Console.WriteLine("index " + index + "domain " + domain[index] + " dist " + dist[index] );
                 queue.Enqueue(index);
             }
-            Console.WriteLine("queue ");
             while (queue.Count > 0)
             {
                 int index = queue.Dequeue();

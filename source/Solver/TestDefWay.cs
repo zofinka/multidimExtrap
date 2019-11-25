@@ -38,10 +38,10 @@ namespace Solver
             //Console.WriteLine("Test " + SquaresProducts.name + " END in " + interAmount + " iterations");
 
             // 212 iteration
-            //Tests.SinXCosY SinXCosY = new Tests.SinXCosY();
-            //Console.WriteLine("Test " + SinXCosY.name + " START");
-            //interAmount = test(SinXCosY.configFile, SinXCosY.pointFile, SinXCosY);
-            //Console.WriteLine("Test " + SinXCosY.name + " END in " + interAmount + " iterations");
+            Tests.SinXCosY SinXCosY = new Tests.SinXCosY();
+            Console.WriteLine("Test " + SinXCosY.name + " START");
+            interAmount = test(SinXCosY.configFile, SinXCosY.pointFile, SinXCosY);
+            Console.WriteLine("Test " + SinXCosY.name + " END in " + interAmount + " iterations");
 
             //133 iteration
             /*Tests.SinXCosXCosY SinXCosXCosY = new Tests.SinXCosXCosY();
@@ -62,10 +62,10 @@ namespace Solver
             //Console.WriteLine(SqrtXSqrtY.name + " Test END in " + interAmount + " iterations");
 
             // interation
-            Tests.LGFunc LGFunc = new Tests.LGFunc();
-            Console.WriteLine(LGFunc.name + " Test START");
-            interAmount = test(LGFunc.configFile, LGFunc.pointFile, LGFunc, LGFunc.tableFile);
-            Console.WriteLine(LGFunc.name + " Test END in " + interAmount + " iterations");
+            //Tests.LGFunc LGFunc = new Tests.LGFunc();
+            //Console.WriteLine(LGFunc.name + " Test START");
+            //interAmount = test(LGFunc.configFile, LGFunc.pointFile, LGFunc, LGFunc.tableFile);
+            //Console.WriteLine(LGFunc.name + " Test END in " + interAmount + " iterations");
         }
 
         private int test(string configFile, string pointFile, Tests.AFunction function, string tableFile = null)
@@ -93,9 +93,9 @@ namespace Solver
             {
                 Shepard model = new Shepard(parser.N_Dimension, points);
                 Analyzer analyzer = new Analyzer(model, points);
-                analyzer.do_default_analyse();
+                //analyzer.do_default_analyse();
                 //analyzer.do_best_ever_analyse();
-                //analyzer.do_quicker_analyse();
+                analyzer.do_quicker_analyse();
                 double[][] xx = analyzer.Result;
 
                 int predictionPointAmount = Math.Min(parser.PredictionPointAmount, xx.Length);
@@ -136,13 +136,15 @@ namespace Solver
 
                     double err = (diffs.Sum() / diffs.Length);
 
-                    Console.WriteLine(" \n " + err + " " + String.Join(", ", realFunctionVal) + " " + String.Join(", ", approxFunctionVal) + " \n ");
+                    //Console.WriteLine(" \n " + err + " " + String.Join(", ", realFunctionVal) + " " + String.Join(", ", approxFunctionVal) + " \n ");
                     //if (err > tempErr)
                     //{
                     //    tempErr = err;
                     //}
                     totalErr += err;
-                    Console.WriteLine("f({0}) real val {1} predict val {2} err {3}", String.Join(", ", xx[k]), String.Join(", ", realFunctionVal), String.Join(", ", approxFunctionVal), err);
+                    //Console.WriteLine("f({0}) real val {1} predict val {2} err {3}", String.Join(", ", xx[k]), String.Join(", ", realFunctionVal), String.Join(", ", approxFunctionVal), err);
+                    //Console.WriteLine("{0};{1};{2};{3}", String.Join(", ", xx[k]), String.Join(", ", realFunctionVal));
+                    Console.WriteLine("{0};{1}", String.Join(";", xx[k]), String.Join(";", realFunctionVal));
                 }
                 maxErr = totalErr;
                 //maxErr = totalErr / new_points.Length;

@@ -282,7 +282,7 @@ namespace Solver
             // Console.WriteLine(candidates.Length);
             double z;
             cls.validate<int>(ldata1, out z);
-            Console.WriteLine("Z " + z);
+            //Console.WriteLine("Z " + z);
 
             xfcandidates = Tools.Sub(grid.Node, candidates);
         }
@@ -499,7 +499,7 @@ namespace Solver
                 //Console.WriteLine("index " + index + "domain " + domain[index] + " dist " + dist[index] );
                 queue.Enqueue(index);
             }
-            Console.WriteLine("queue ");
+            //Console.WriteLine("queue ");
             while (queue.Count > 0)
             {
                 int index = queue.Dequeue();
@@ -628,7 +628,7 @@ namespace Solver
 
         private void quick_best_ever_analyse()
         {
-            Console.WriteLine("Интерполяция ошибки аппроксимации функции на области доменов");
+            //Console.WriteLine("Интерполяция ошибки аппроксимации функции на области доменов");
             //интерполирую ошибку
 
             error = new double[grid.Node.Length];
@@ -638,7 +638,7 @@ namespace Solver
                 error[i] = distanceX(grid.Node[i], xf[domain[i]]);
             }
 
-            Console.WriteLine("Упорядочение {0} потенциальных кандидатов", candidates.Length);
+            //Console.WriteLine("Упорядочение {0} потенциальных кандидатов", candidates.Length);
             List<Tuple<int, double>> candidatesTuples = new List<Tuple<int, double>>();
 
             for (int i = 0; i < candidates.Length; ++i)
@@ -647,7 +647,7 @@ namespace Solver
             }
             var sortedCandidates = candidatesTuples.OrderByDescending((t) => t.Item2).ToList();
 
-            Console.WriteLine("Выбор лучших кандидатов среди упорядоченных {0}:", candidates.Length);
+            //Console.WriteLine("Выбор лучших кандидатов среди упорядоченных {0}:", candidates.Length);
             List<int> bestCandidates = new List<int>();
             int firstBestCandidate = sortedCandidates[0].Item1;
             bestCandidates.Add(firstBestCandidate);
@@ -667,11 +667,11 @@ namespace Solver
             }
              
             candidates = bestCandidates.ToArray();
-            Console.WriteLine("Формирование списка кандидатов из {0}", candidates.Length);
+            //Console.WriteLine("Формирование списка кандидатов из {0}", candidates.Length);
             candidates = Tools.Sub(candidates, 0, candidates.Length);
             xfcandidates = Tools.Sub(grid.Node, candidates);
 
-            Console.WriteLine("Candidates: ");
+            //Console.WriteLine("Candidates: ");
             for (int i = 0; i < xfcandidates.Length; i++)
             {
                 //func.Calculate(xfcandidates[i]);
@@ -681,12 +681,12 @@ namespace Solver
             }
            // Console.WriteLine();
 
-            Console.WriteLine("Процесс расчета закончен успешно");
+            //Console.WriteLine("Процесс расчета закончен успешно");
         }
 
         private void best_ever_analyse()
         {
-            Console.WriteLine("Интерполяция ошибки аппроксимации функции на области доменов");
+            //Console.WriteLine("Интерполяция ошибки аппроксимации функции на области доменов");
             //интерполирую ошибку
 
             error = new double[grid.Node.Length];
@@ -706,9 +706,9 @@ namespace Solver
 
             int maxcandidates = candidates.Length;
             if (candidates.Length > maxcandidates)
-                Console.WriteLine("Предварительный отбор {1} из {0} кандидатов", candidates.Length, maxcandidates);
+                //Console.WriteLine("Предварительный отбор {1} из {0} кандидатов", candidates.Length, maxcandidates);
 
-            Console.WriteLine("Упорядочение {0} потенциальных кандидатов", maxcandidates);
+            //Console.WriteLine("Упорядочение {0} потенциальных кандидатов", maxcandidates);
             //сортировка потенциальных кандидатов
             for (int i = 0; i < maxcandidates - 1; i++)
                 for (int j = i + 1; j < candidates.Length; j++)
@@ -737,7 +737,7 @@ namespace Solver
             }
 
             candidates = bestCandidates.ToArray();
-            Console.WriteLine("Формирование списка кандидатов", maxcandidates);
+            //Console.WriteLine("Формирование списка кандидатов", maxcandidates);
             candidates = Tools.Sub(candidates, 0, candidates.Length);
             xfcandidates = Tools.Sub(grid.Node, candidates);
 
@@ -746,18 +746,18 @@ namespace Solver
                 //func.Calculate(xfcandidates[i]);
                 for (int j = N; j < N + M; j++) xfcandidates[i][j] = 0;
             }
-            Console.WriteLine("Процесс расчета закончен успешно");
+            //Console.WriteLine("Процесс расчета закончен успешно");
         }
 
         private void analyse_error()
         {
-            Console.WriteLine("Вычисление локальных экстраполянтов");
+            //Console.WriteLine("Вычисление локальных экстраполянтов");
             //вычисляю экстраполянты
             Shepard[] sh = new Shepard[xf.Length];
             for (int i = 0; i < xf.Length; i++)
                 sh[i] = new Shepard(N, xf, graph[i]);
 
-            Console.WriteLine("Аппроксимация значений исходной функции на границах доменов");
+            //Console.WriteLine("Аппроксимация значений исходной функции на границах доменов");
             //пересчитываю значения в узлах решетки только на границах доменов
             for (int i = 0; i < grid.Node.Length; i++)
             {
@@ -765,7 +765,7 @@ namespace Solver
                 sh[domain[i]].Calculate(grid.Node[i]);
             }
 
-            Console.WriteLine("Вычисление ошибки аппроксимации функции на границах доменов");
+            //Console.WriteLine("Вычисление ошибки аппроксимации функции на границах доменов");
             //вычисляю ошибку на границах доменов
             error = new double[grid.Node.Length];
             for (int i = 0; i < grid.Node.Length; i++)
@@ -779,7 +779,7 @@ namespace Solver
                 }
             }
 
-            Console.WriteLine("Интерполяция ошибки аппроксимации функции на области доменов");
+            //Console.WriteLine("Интерполяция ошибки аппроксимации функции на области доменов");
             //интерполирую ошибку
             double max = 0;
             for (int i = 0; i < grid.Node.Length; i++)
@@ -790,7 +790,7 @@ namespace Solver
                 if (max < error[i]) max = error[i];
             }
 
-            Console.WriteLine("Нормировка функции ошибки");
+            //Console.WriteLine("Нормировка функции ошибки");
             //нормирую ошибку
             if (max > 0)
                 for (int i = 0; i < grid.Node.Length; i++)
@@ -798,9 +798,9 @@ namespace Solver
 
             int maxcandidates = Math.Min(candidates.Length, 1000);
             if (candidates.Length > maxcandidates)
-                Console.WriteLine("Предварительный отбор {1} из {0} кандидатов", candidates.Length, maxcandidates);
+                //Console.WriteLine("Предварительный отбор {1} из {0} кандидатов", candidates.Length, maxcandidates);
 
-            Console.WriteLine("Упорядочение {0} потенциальных кандидатов", maxcandidates);
+            //Console.WriteLine("Упорядочение {0} потенциальных кандидатов", maxcandidates);
             //сортировка потенциальных кандидатов
             for (int i = 0; i < maxcandidates - 1; i++)
                 for (int j = i + 1; j < candidates.Length; j++)
@@ -811,7 +811,7 @@ namespace Solver
                         candidates[j] = temp;
                     }
 
-            Console.WriteLine("Формирование списка кандидатов", maxcandidates);
+            //Console.WriteLine("Формирование списка кандидатов", maxcandidates);
             candidates = Tools.Sub(candidates, 0, maxcandidates);
             xfcandidates = Tools.Sub(grid.Node, candidates);
             for (int i = 0; i < xfcandidates.Length; i++)
@@ -819,7 +819,7 @@ namespace Solver
                 //func.Calculate(xfcandidates[i]);
                 for (int j = N; j < N + M; j++) xfcandidates[i][j] = 0;
             }
-            Console.WriteLine("Процесс расчета закончен успешно");
+            //Console.WriteLine("Процесс расчета закончен успешно");
         }
 
         private void analyse_with_dichotomy()
@@ -920,7 +920,7 @@ namespace Solver
                 //func.Calculate(xfcandidates[i]);
                 for (int j = N; j < N + M; j++) xfcandidates[i][j] = 0;
             }
-            Console.WriteLine("Процесс расчета закончен успешно");
+            //Console.WriteLine("Процесс расчета закончен успешно");
         }
 
         private double distanceX(double[] a, double[] b)
