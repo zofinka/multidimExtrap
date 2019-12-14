@@ -1,28 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Project
 {
-    class Task
+    public class Task
     {
-        private Function cheapFunction;
-        private Configuration configuration;
-        private ApproxPoint[] knownPoints;
-        private ApproxPoint[] searchPoints;
-        private int n;
-        private int m;
-        private double accuracy;
-
-
-        public override string ToString()
-        {
-            return "";
-        }
-
-        public string ToJsonString()
-        {
-            return "";
-        }
+        /// <summary>
+        /// путь до файла с уже расчитанными точками и значениями функций в этих точках
+        /// формат точки: x1, x2, .. xn, y
+        /// </summary>
+        public double[][] Points { get; set; }
     }
 }
