@@ -10,21 +10,25 @@ namespace Solver
     {
         static void Main(string[] args)
         {
-            if (args.Length != 3)
-            {
-                Console.WriteLine("Missing input parameters.");
-                Console.WriteLine("Command line should be in format: Solver.exe <config file> <file with calculated points> <file for output points>");
-                //Console.ReadKey();
-                return;
-            }
+            Test t = new Test();
+            //t.runDefWayTests();
+            t.runRandomForestTestsLearnOnAll();
+            //t.runRandomForestTestsLearnOnAll();
+            //if (args.Length != 3)
+            //{
+            //    Console.WriteLine("Missing input parameters.");
+            //    Console.WriteLine("Command line should be in format: Solver.exe <config file> <file with calculated points> <file for output points>");
+            //    Console.ReadKey();
+            //    return;
+            //}
 
-            Parser parser = new Parser(args[0], args[1]);
-            int res = parser.doParse();
-            if (res != 0)
-            {
+            //Parser parser = new Parser(args[0], args[1]);
+            //int res = parser.doParse();
+            //if (res != 0)
+           // {
                 // Console.ReadKey();
-                return;
-            }
+            //    return;
+           // }
             
 
              /*double[][] xf = new double[][] 
@@ -39,13 +43,13 @@ namespace Solver
                 new double[] { 2, 1, 2 },
                 new double[] { 2, 2, 4 }
             };*/
-            Shepard model = new Shepard(parser.FunctionDimension, parser.Points);
+            //Shepard model = new Shepard(parser.FunctionDimension, parser.Points);
             
             //double[] x = new double[] { 0.5, 0.5, 0 };
             //model.Calculate(x);
             //Console.WriteLine("f({0}, {1}) = {2}", x[0], x[1], x[2]);
 
-            Analyzer analyzer = new Analyzer(model, parser.Points);
+            /*Analyzer analyzer = new Analyzer(model, parser.Points);
 
             double[][] xx = analyzer.Result;
             double[][] new_points = new double[parser.PredictionPointAmount][];
@@ -57,9 +61,9 @@ namespace Solver
                 // Console.WriteLine(String.Join(", ", xx[i]));
             }
 
-            Parser.keepSolution(args[2], new_points);
+            Parser.keepSolution(args[2], new_points);*/
 
-            //Console.ReadKey();
+            Console.ReadKey();
         }
     }
 }

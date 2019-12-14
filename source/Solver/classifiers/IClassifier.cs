@@ -30,7 +30,7 @@ namespace Classifiers
         }
     }
 
-    interface IClassifier
+    public interface IClassifier
     {
         void train(AClassifierParams param);
         void infer(double[] x, out int label);
