@@ -10,9 +10,9 @@ namespace Project
     {
         public SzinXCosXCosY()
         {
-            configFile = @"C:\Users\Sofya\multidimExtrap\source\test_data\17.sinXcosYcosX\config.cfg";
-            pointFile = @"C: \Users\Sofya\multidimExtrap\source\test_data\17.sinXcosYcosX\points.txt";
-            Name = "SinXCosXCosY ";
+            //configFile = @"C:\Users\Sofya\multidimExtrap\source\test_data\17.sinXcosYcosX\config.cfg";
+            //pointFile = @"C: \Users\Sofya\multidimExtrap\source\test_data\17.sinXcosYcosX\points.txt";
+            //Name = "SinXCosXCosY ";
     }
 
         public override double[] derivative(double[] points)
@@ -21,9 +21,10 @@ namespace Project
         }
 
         // sin(x1)* cos(x1) * cos(x2)
-        public override double func(double[] points)
+        public override double[] func(double[] points)
         {
-            return Math.Sin(points[0]) * Math.Cos(points[0]) * Math.Cos(points[1]);
+            double[] result = { Math.Sin(points[0]) * Math.Cos(points[0]) * Math.Cos(points[1]) };
+            return result;
         }
     }
 }

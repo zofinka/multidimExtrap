@@ -6,15 +6,21 @@ using System.Threading.Tasks;
 
 namespace Project
 {
-    interface IAnalyzer
+    public interface IAnalyzer
     {
+        IClassifier learn_random_forest_on_known_points(Func<double[], double[]> meFunc, Func<double[], double[]> calcDerivative, double allowErr);
+        void do_random_forest_analyse(IClassifier cls, double allowErr, Func<double[], double[]> meFunc, Func<double[], double[]> calcDerivative);
+        double[][] Result { get; }
     }
 
     public class Analyzer : IAnalyzer
     {
         IFunction func;
+        //IConfig config;
+        //MeasuredPoint[] xf;
         double[][] xf;
         double[][] xfcandidates;
+        //MeasuredPoint[] xfcandidates;
         Grid grid;
         int[] domain;
         int[][] graph;
@@ -40,14 +46,29 @@ namespace Project
 
         public IFunction Function { get { return func; } }
 
+        //public MeasuredPoint[] Source { get { return xf; } }
         public double[][] Source { get { return xf; } }
 
+        //public MeasuredPoint[] Result { get { return xfcandidates; } }
         public double[][] Result { get { return xfcandidates; } }
 
-        public Analyzer(IFunction func, double[][] xf)
+        public Analyzer(IFunction func, MeasuredPoint[] xf)
         {
             this.func = func;
-            this.xf = xf;
+            //this.config = config;
+            int arrLength = xf[0].inputValues.Length + xf[0].outputValues.Length;
+            this.xf = new double[xf.Length][];
+            for (int i = 0; i < xf.Length; i++)
+            {
+                this.xf[i] = new double[arrLength];
+                for (int j = 0; j < arrLength; j++)
+                {
+                    if (j < xf[0].inputValues.Length)
+                        this.xf[i][j] = xf[i].inputValues[j];
+                    else
+                        this.xf[i][j] = xf[i].outputValues[j - xf[0].inputValues.Length];
+                }
+            }
 
             int[] count = new int[N]; for (int i = 0; i < N; i++) count[i] = (Min[i] == Max[i]) ? 1 : NGRID;
 
@@ -74,7 +95,7 @@ namespace Project
             analyse_error();
         }
 
-        public void do_random_forest_analyse(Classifiers.IClassifier cls, double allowErr, Func<double[], double> meFunc, Func<double[], double[]> calcDerivative)
+        public void do_random_forest_analyse(IClassifier cls, double allowErr, Func<double[], double[]> meFunc, Func<double[], double[]> calcDerivative)
         {
             int[] count = new int[N]; for (int i = 0; i < N; i++) count[i] = (Min[i] == Max[i]) ? 1 : NGRID;
             create_grid(count);
@@ -85,7 +106,7 @@ namespace Project
             int n = candidates.Length;
             Console.WriteLine(candidates.Length);
             //int n = grid.Node.Length;
-            Classifiers.LabeledData[] ldata = new Classifiers.LabeledData[n];
+            LabeledData[] ldata = new LabeledData[n];
             int featureCount = 0;
             for (int i = 0; i < n; i++)
             {
@@ -138,7 +159,7 @@ namespace Project
                     features[5 + k] = derivative[k];
                 }
 
-                ldata[i] = new Classifiers.LabeledData(features, 0);
+                ldata[i] = new LabeledData(features, 0);
                 featureCount = features.Length;
             }
             List<int> newCandidates = new List<int>();
@@ -211,7 +232,7 @@ namespace Project
             return features;
         }
 
-        public Classifiers.IClassifier learn_random_forest_on_known_points(Func<double[], double> meFunc, Func<double[], double[]> calcDerivative, double allowErr)
+        public IClassifier learn_random_forest_on_known_points(Func<double[], double[]> meFunc, Func<double[], double[]> calcDerivative, double allowErr)
         {
             int[] count = new int[N]; for (int i = 0; i < N; i++) count[i] = (Min[i] == Max[i]) ? 1 : NGRID;
             create_grid(count);
@@ -219,25 +240,25 @@ namespace Project
             analyse_error();
 
             int n = xf.Length;
-            Classifiers.LabeledData[] ldata = new Classifiers.LabeledData[n];
+            LabeledData[] ldata = new LabeledData[n];
             int featureCount = 0;
             for (int i = 0; i < n; i++)
             {
                 double[] feature = build_fetures_from_existing_points(i, calcDerivative);
-                ldata[i] = new Classifiers.LabeledData(feature, 1);
+                ldata[i] = new LabeledData(feature, 1);
                 featureCount = feature.Length;
             }
 
 
-            Classifiers.IClassifier cls = new Classifiers.RandomForest();
+            IClassifier cls = new RandomForest();
 
-            Classifiers.RandomForestParams ps = new Classifiers.RandomForestParams(ldata, n   /* samples count */,
-                                                                                         featureCount   /* features count */,
-                                                                                         2   /* classes count */,
-                                                                                        n / 10   /* trees count */,
-                                                                                        5   /* count of features to do split in a tree */,
-                                                                                        0.7 /* percent of a training set of samples  */
-                                                                                            /* used to build individual trees. */);
+            RandomForestParams ps = new RandomForestParams(ldata, n   /* samples count */,
+                                                           featureCount   /* features count */,
+                                                           2   /* classes count */,
+                                                           n / 10   /* trees count */,
+                                                           5   /* count of features to do split in a tree */,
+                                                           0.7 /* percent of a training set of samples  */
+                                                           /* used to build individual trees. */);
 
             cls.train(ps);
 
@@ -249,7 +270,7 @@ namespace Project
 
         }
 
-        public Classifiers.IClassifier learn_random_forest_on_grid(Func<double[], double> meFunc, Func<double[], double[]> calcDerivative, double allowErr)
+        public IClassifier learn_random_forest_on_grid(Func<double[], double> meFunc, Func<double[], double[]> calcDerivative, double allowErr)
         {
 
             int[] count = new int[N]; for (int i = 0; i < N; i++) count[i] = (Min[i] == Max[i]) ? 1 : NGRID;
@@ -259,7 +280,7 @@ namespace Project
 
             int n = grid.Node.Length + xf.Length;
             // int n = grid.Node.Length;
-            Classifiers.LabeledData[] ldata = new Classifiers.LabeledData[n];
+            LabeledData[] ldata = new LabeledData[n];
             int featureCount = 0;
             for (int i = 0; i < grid.Node.Length; i++)
             {
@@ -314,25 +335,25 @@ namespace Project
                     features[5 + k] = derivative[k];
                 }
 
-                ldata[i] = new Classifiers.LabeledData(features, pointClass);
+                ldata[i] = new LabeledData(features, pointClass);
                 featureCount = features.Length;
             }
             for (int i = 0; i < xf.Length; i++)
             {
                 double[] feature = build_fetures_from_existing_points(i, calcDerivative);
-                ldata[grid.Node.Length + i] = new Classifiers.LabeledData(feature, 0);
+                ldata[grid.Node.Length + i] = new LabeledData(feature, 0);
                 featureCount = feature.Length;
             }
 
 
-            Classifiers.IClassifier cls = new Classifiers.RandomForest();
-            Classifiers.RandomForestParams ps = new Classifiers.RandomForestParams(ldata, n   /* samples count */,
-                                                                                          featureCount   /* features count */,
-                                                                                          2   /* classes count */,
-                                                                                          n / 10   /* trees count */,
-                                                                                          6   /* count of features to do split in a tree */,
-                                                                                          0.7 /* percent of a training set of samples  */
-                                                                                              /* used to build individual trees. */);
+            IClassifier cls = new RandomForest();
+            RandomForestParams ps = new RandomForestParams(ldata, n   /* samples count */,
+                                                           featureCount   /* features count */,
+                                                           2   /* classes count */,
+                                                           n / 10   /* trees count */,
+                                                           6   /* count of features to do split in a tree */,
+                                                           0.7 /* percent of a training set of samples  */
+                                                           /* used to build individual trees. */);
 
             cls.train(ps);
             double trainModelPrecision;
@@ -354,9 +375,9 @@ namespace Project
 
         private void create_grid(int[] count)
         {
-            Console.WriteLine("Построение сетки ({0})", count.Str());
+            Console.WriteLine("Building of grid ({0})", count.Str());
             grid = new Grid(N, M, Min, Max, count);
-            Console.WriteLine("Сетка на {0} узлах построена успешно", grid.Node.Length);
+            Console.WriteLine("Grid on {0} nodes has built successfully", grid.Node.Length);
         }
 
         private void analyse_voronoi()
@@ -366,7 +387,7 @@ namespace Project
             for (int i = 0; i < xf.Length; i++)
                 adjncy[i] = new SortedSet<int>();
 
-            Console.WriteLine("Разбиение пространства на домены");
+            Console.WriteLine("Partition of the space into domains");
             Queue<int> queue = new Queue<int>();
             domain = new int[grid.Node.Length];
             double[] dist = new double[grid.Node.Length];
@@ -418,7 +439,7 @@ namespace Project
             //Console.WriteLine("dist " + String.Join(", ", dist));
             //Console.WriteLine("domen " + String.Join(", ", domain));
 
-            Console.WriteLine("Построение графа доменов");
+            Console.WriteLine("Building a domain graph");
             //строю граф соседства доменов
             graph = new int[xf.Length][];
             for (int i = 0; i < xf.Length; i++)
@@ -428,7 +449,7 @@ namespace Project
                 // Console.WriteLine("dist " + String.Join(", ", adjncy[i]));
             }
 
-            Console.WriteLine("Построение диграммы Вороного на сетке");
+            Console.WriteLine("Building a Voronoi diagram on a grid");
             //уточняю домены (диаграмма вороного на сетке)
             for (int i = 0; i < grid.Node.Length; i++)
             {
@@ -442,7 +463,7 @@ namespace Project
                 }
             }
 
-            Console.WriteLine("Вычисление границ доменов");
+            Console.WriteLine("Domain Border Calculation");
             //вычисляю границы доменов
             borderdist = new double[grid.Node.Length];
             bordernear = new int[grid.Node.Length];
@@ -462,7 +483,7 @@ namespace Project
             }
             candidates = queue.ToArray();
 
-            Console.WriteLine("Построение функции расстояний до границ доменов");
+            Console.WriteLine("Construction of the function of distances to domain boundaries");
             //вычисляю расстояния от границ
             while (queue.Count > 0)
             {
@@ -488,7 +509,7 @@ namespace Project
                 }
             }
 
-            Console.WriteLine("Нормировка функции расстояний до границ доменов");
+            Console.WriteLine("Normalization of the function of distances to domain boundaries");
             //нормирую расстояния от границ
             for (int i = 0; i < grid.Node.Length; i++)
             {
@@ -513,21 +534,23 @@ namespace Project
 
         private void analyse_error()
         {
-            Console.WriteLine("Вычисление локальных экстраполянтов");
+            Console.WriteLine("Calculation of local extrapolants");
             //вычисляю экстраполянты
-            Shepard[] sh = new Shepard[xf.Length];
+            //Shepard[] sh = new Shepard[xf.Length];
+            MeasuredPoint[] xfMeasured = MeasuredPoint.getArrayFromDouble(xf, N);
+            ShepardApprox[] shepardApprox = new ShepardApprox[xf.Length];
             for (int i = 0; i < xf.Length; i++)
-                sh[i] = new Shepard(N, xf, graph[i]);
+                shepardApprox[i] = new ShepardApprox(N, xfMeasured, graph[i]);
 
-            Console.WriteLine("Аппроксимация значений исходной функции на границах доменов");
+            Console.WriteLine("Approximation of the values of the initial function at the domain boundaries");
             //пересчитываю значения в узлах решетки только на границах доменов
             for (int i = 0; i < grid.Node.Length; i++)
             {
                 if (borderdist[i] > 0) continue;
-                sh[domain[i]].Calculate(grid.Node[i]);
+                shepardApprox[domain[i]].Calculate(grid.Node[i]);
             }
 
-            Console.WriteLine("Вычисление ошибки аппроксимации функции на границах доменов");
+            Console.WriteLine("Calculation of the approximation error of a function at domain boundaries");
             //вычисляю ошибку на границах доменов
             error = new double[grid.Node.Length];
             for (int i = 0; i < grid.Node.Length; i++)
@@ -541,7 +564,7 @@ namespace Project
                 }
             }
 
-            Console.WriteLine("Интерполяция ошибки аппроксимации функции на области доменов");
+            Console.WriteLine("Interpolation of approximation error function on domain domains");
             //интерполирую ошибку
             double max = 0;
             for (int i = 0; i < grid.Node.Length; i++)
@@ -552,7 +575,7 @@ namespace Project
                 if (max < error[i]) max = error[i];
             }
 
-            Console.WriteLine("Нормировка функции ошибки");
+            Console.WriteLine("Error Function Normalization");
             //нормирую ошибку
             if (max > 0)
                 for (int i = 0; i < grid.Node.Length; i++)
@@ -560,9 +583,9 @@ namespace Project
 
             int maxcandidates = Math.Min(candidates.Length, 1000);
             if (candidates.Length > maxcandidates)
-                Console.WriteLine("Предварительный отбор {1} из {0} кандидатов", candidates.Length, maxcandidates);
+                Console.WriteLine("Preliminary selection of {1} of {0} candidates", candidates.Length, maxcandidates);
 
-            Console.WriteLine("Упорядочение {0} потенциальных кандидатов", maxcandidates);
+            Console.WriteLine("Ordering {0} potential candidates", maxcandidates);
             //сортировка потенциальных кандидатов
             for (int i = 0; i < maxcandidates - 1; i++)
                 for (int j = i + 1; j < candidates.Length; j++)
@@ -573,7 +596,7 @@ namespace Project
                         candidates[j] = temp;
                     }
 
-            Console.WriteLine("Формирование списка кандидатов", maxcandidates);
+            Console.WriteLine("Creating a list of candidates", maxcandidates);
             candidates = Tools.Sub(candidates, 0, maxcandidates);
             xfcandidates = Tools.Sub(grid.Node, candidates);
             for (int i = 0; i < xfcandidates.Length; i++)
@@ -581,7 +604,7 @@ namespace Project
                 //func.Calculate(xfcandidates[i]);
                 for (int j = N; j < N + M; j++) xfcandidates[i][j] = 0;
             }
-            Console.WriteLine("Процесс расчета закончен успешно");
+            Console.WriteLine("Calculation process completed successfully");
         }
 
         private double distanceX(double[] a, double[] b)
@@ -704,5 +727,4 @@ namespace Project
                 }
         }
     }
-}
 }

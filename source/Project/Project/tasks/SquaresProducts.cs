@@ -10,9 +10,9 @@ namespace Project
     {
         public SquaresProducts()
         {
-            configFile = @"C:\Users\Sofya\multidimExtrap\source\test_data\11.SquaresProducts\config.cfg";
-            pointFile = @"C: \Users\Sofya\multidimExtrap\source\test_data\11.SquaresProducts\points.txt";
-            Name = "SquaresProducts x1^2 * x2^2 * ..."; 
+            //configFile = @"C:\Users\Sofya\multidimExtrap\source\test_data\11.SquaresProducts\config.cfg";
+            //pointFile = @"C: \Users\Sofya\multidimExtrap\source\test_data\11.SquaresProducts\points.txt";
+            //Name = "SquaresProducts x1^2 * x2^2 * ..."; 
         }
 
         public override double[] derivative(double[] points)
@@ -35,14 +35,15 @@ namespace Project
         }
 
         // x^2*y^2 + 2
-        public override double func(double[] points)
+        public override double[] func(double[] points)
         {
-            double res = 1;
+            double[] res = { 1 };
             for (int i = 0; i < points.Length - 1; i++)
             {
-                res *= Math.Pow(points[i], 2);
+                res[0] *= Math.Pow(points[i], 2);
             }
-            return res + 2;
+            res[0] += 2;
+            return res;
         }
     }
 }

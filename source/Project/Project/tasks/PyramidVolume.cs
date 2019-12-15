@@ -10,9 +10,9 @@ namespace Project
     {
         public PyramidVolume()
         {
-            configFile = @"C:\Users\Sofya\multidimExtrap\source\test_data\3.PyramidVolume\config.cfg";
-            pointFile = @"C:\Users\Sofya\multidimExtrap\source\test_data\3.PyramidVolume\points.txt";
-            Name = "Pyramid volume ";
+            //configFile = @"C:\Users\Sofya\multidimExtrap\source\test_data\3.PyramidVolume\config.cfg";
+            //pointFile = @"C:\Users\Sofya\multidimExtrap\source\test_data\3.PyramidVolume\points.txt";
+            //Name = "Pyramid volume ";
         }
 
         public override double[] derivative(double[] points)
@@ -34,15 +34,16 @@ namespace Project
             return derivative;
         }
 
-        public override double func(double[] points)
+        public override double[] func(double[] points)
         {
 
-            double res = 1;
+            double[] res = { 1 };
             for (int i = 0; i < points.Length - 1; i++)
             {
-                res *= points[i];
+                res[0] *= points[i];
             }
-            return res / 3;
+            res[0] = res[0] / 3;
+            return res;
         }
     }
 }

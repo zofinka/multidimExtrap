@@ -10,9 +10,9 @@ namespace Project
     {
         public SinXCosY()
         {
-            configFile = @"C:\Users\Sofya\multidimExtrap\source\test_data\12.sincos\config.cfg";
-            pointFile = @"C: \Users\Sofya\multidimExtrap\source\test_data\12.sincos\points.txt";
-            Name = "SinCon sin(x1) * con(x2) ";
+            //configFile = @"C:\Users\Sofya\multidimExtrap\source\test_data\12.sincos\config.cfg";
+            //pointFile = @"C: \Users\Sofya\multidimExtrap\source\test_data\12.sincos\points.txt";
+            //Name = "SinCon sin(x1) * con(x2) ";
         }
 
         public override double[] derivative(double[] points)
@@ -20,9 +20,10 @@ namespace Project
             return new double[2] { Math.Cos(points[0]) * Math.Cos(points[1]), -1 * Math.Sin(points[0]) * Math.Sin(points[1]) };
         }
 
-        public override double func(double[] points)
+        public override double[] func(double[] points)
         {
-            return Math.Sin(points[0]) * Math.Cos(points[1]);
+            double[] result = { Math.Sin(points[0]) * Math.Cos(points[1]) };
+            return result;
         }
     }
 }

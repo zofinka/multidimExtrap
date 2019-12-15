@@ -10,9 +10,9 @@ namespace Project
     {
         public SquareArea()
         {
-            configFile = @"C:\Users\Sofya\multidimExtrap\source\test_data\1.SquareArea\config.cfg";
-            pointFile = @"C:\Users\Sofya\multidimExtrap\source\test_data\1.SquareArea\points.txt";
-            Name = "Square Area x1 * x2 * ... ";
+            //configFile = @"C:\Users\Sofya\multidimExtrap\source\test_data\1.SquareArea\config.cfg";
+            //pointFile = @"C:\Users\Sofya\multidimExtrap\source\test_data\1.SquareArea\points.txt";
+            //Name = "Square Area x1 * x2 * ... ";
         }
 
         public override double[] derivative(double[] points)
@@ -34,12 +34,12 @@ namespace Project
             return derivative;
         }
 
-        public override double func(double[] points)
+        public override double[] func(double[] points)
         {
-            double res = 1;
+            double[] res = { 1 };
             for (int i = 0; i < points.Length - 1; i++)
             {
-                res *= points[i];
+                res[0] *= points[i];
             }
             return res;
         }

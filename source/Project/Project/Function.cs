@@ -45,7 +45,12 @@ namespace Project
 
         public double[] Max { get; set; } = null;
 
-        public abstract void Calculate(double[] xf);
+        public abstract void Calculate(MeasuredPoint xf);
+
+        public void Calculate(double[] xf)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public delegate void FunctionDelegate(double[] xy);

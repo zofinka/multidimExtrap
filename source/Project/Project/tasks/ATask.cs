@@ -44,13 +44,13 @@ namespace Project
         //    return instance;
         //}
 
-        protected string configFile;
-        protected string pointFile;
-        private string name;
+        //protected string configFile;
+        //protected string pointFile;
+        //private string name;
 
         //public string Config { get => config; set => config = value; }
 
-        public abstract double func(double[] points);
+        public abstract double[] func(double[] points);
         public abstract double[] derivative(double[] points);
     }
 }

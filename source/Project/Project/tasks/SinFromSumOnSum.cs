@@ -10,9 +10,9 @@ namespace Project
     {
         public SinFromSumOnSum()
         {
-            configFile = @"C:\Users\Sofya\multidimExtrap\source\test_data\16.sin(x+y)on(x+y)\config.cfg";
-            pointFile = @"C: \Users\Sofya\multidimExtrap\source\test_data\16.sin(x+y)on(x+y)\points.txt";
-            Name = "SinFromSumOnSum sin(x1 + x2) / (x1 + x2)";
+            //configFile = @"C:\Users\Sofya\multidimExtrap\source\test_data\16.sin(x+y)on(x+y)\config.cfg";
+            //pointFile = @"C: \Users\Sofya\multidimExtrap\source\test_data\16.sin(x+y)on(x+y)\points.txt";
+            //Name = "SinFromSumOnSum sin(x1 + x2) / (x1 + x2)";
         }
 
         public override double[] derivative(double[] points)
@@ -22,9 +22,10 @@ namespace Project
         }
 
         // sin(x + y) / x + y
-        public override double func(double[] points)
+        public override double[] func(double[] points)
         {
-            return Math.Sin(points[0] + points[1]) / points[0] + points[1];
+            double[] result = { Math.Sin(points[0] + points[1]) / points[0] + points[1] };
+            return result;
         }
     }
 }

@@ -9,19 +9,19 @@ namespace Project
 {
     public interface IParser
     {
-        Task parseTask(string pathToTask);
+        Task parseTask(string pathToTask, IConfig config);
         IConfig parseConfig(string pathToConfig);
     }
 
     public class Parser : IParser
     {
-        private int pointAmount;
-        private int functionDimension;
+        //private int pointAmount;
+        //private int functionDimension;
 
         public Parser()
         {
-            pointAmount = -1;
-            functionDimension = -1;
+            //pointAmount = -1;
+            //functionDimension = -1;
         }
 
         public static void keepSolution(string outputFile, double[][] points)
@@ -37,7 +37,7 @@ namespace Project
             }
         }
 
-        public Task parseTask(string pathToTask)
+        public Task parseTask(string pathToTask, IConfig config)
         {
             if (pathToTask.Length == 0)
             {
@@ -49,28 +49,31 @@ namespace Project
                 Console.WriteLine("The file with calculated points is not exists: " + pathToTask);
                 return null;
             }
-            Task task = new Task();
+            Task task = new Task(config.PointAmount, config.PredictionPointAmount);
             using (StreamReader fs = new StreamReader(pathToTask))
             {
                 string temp = "";
-                task.Points = new double[pointAmount][];
-                for (int i = 0; i < pointAmount; i++)
+                for (int i = 0; i < config.PointAmount; i++)
                 {
                     temp = fs.ReadLine();
                     if (temp == null)
                     {
                         break;
                     }
-                    task.Points[i] = new double[functionDimension + 1];
+                    task.originPoints[i] = new MeasuredPoint(config.FunctionDimension, config.DependentVariablesNum);
                     string[] strItems = temp.Split(' ');
-                    if (strItems.Length != functionDimension + 1)
+                    if (strItems.Length != config.FunctionDimension + config.DependentVariablesNum)
                     {
-                        Console.WriteLine("The vector " + temp + " length is not equel function demention " + functionDimension);
+                        Console.WriteLine("The vector " + temp + " length is not equel function demention " + config.FunctionDimension);
                         continue;
                     }
-                    for (int j = 0; j < functionDimension + 1; j++)
+                    for (int j = 0; j < config.FunctionDimension; j++)
                     {
-                        task.Points[i][j] = double.Parse(strItems[j]);
+                        task.originPoints[i].inputValues[j] = double.Parse(strItems[j]);
+                    }
+                    for (int j = 0; j < config.DependentVariablesNum; j++)
+                    {
+                        task.originPoints[i].outputValues[j] = double.Parse(strItems[config.FunctionDimension + j]);
                     }
                 }
             }
@@ -92,14 +95,22 @@ namespace Project
             Config config = new Config();
             using (StreamReader fs = new StreamReader(pathToConfig))
             {
-                config.FunctionDimension = Int32.Parse(fs.ReadLine());
+                string temp = fs.ReadLine();
+                string[] strItems = temp.Split(' ');
+                if (strItems.Length != 2)
+                {
+                    Console.WriteLine("The first line of config file has incorrect format. It should be 'FunctionDimension DependentVariablesNum'");
+                }
+                else
+                {
+                    config.FunctionDimension = Int32.Parse(strItems[0]);
+                    config.DependentVariablesNum = Int32.Parse(strItems[1]);
+                }
                 config.PointAmount = Int32.Parse(fs.ReadLine());
                 config.PredictionPointAmount = Int32.Parse(fs.ReadLine());
                 config.Approximation = float.Parse(fs.ReadLine());
-                pointAmount = config.PointAmount;
-                functionDimension = config.FunctionDimension;
-                string temp = fs.ReadLine();
-                string[] strItems = temp.Split(' ');
+                temp = fs.ReadLine();
+                strItems = temp.Split(' ');
                 config.Min = new double[config.FunctionDimension];
                 if (strItems.Length != config.FunctionDimension)
                 {
