@@ -70,12 +70,13 @@
     <Compile Include="alglib\interpolation.cs" />
     <Compile Include="alglib\linalg.cs" />
     <Compile Include="alglib\optimization.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="Approx.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="classifiers\RandomForest.cs" />
     <Compile Include="alglib\solvers.cs" />
     <Compile Include="alglib\specialfunctions.cs" />
     <Compile Include="alglib\statistics.cs" />
+    <Compile Include="tasks\Test.cs" />
     <Compile Include="tasks\TruncPyramid.cs" />
     <Compile Include="Tools.cs" />
   </ItemGroup>

@@ -47,8 +47,5 @@ namespace Project
             }
             return points;
         }
-
-        //public double[] InputValues { get => inputValues; set => inputValues = value; }
-        //public double OutputValue { get => outputValue; set => outputValue = value; }
     }
 }

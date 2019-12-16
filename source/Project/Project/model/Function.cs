@@ -47,10 +47,7 @@ namespace Project
 
         public abstract void Calculate(MeasuredPoint xf);
 
-        public void Calculate(double[] xf)
-        {
-            throw new NotImplementedException();
-        }
+        public abstract void Calculate(double[] xf);
     }
 
     public delegate void FunctionDelegate(double[] xy);

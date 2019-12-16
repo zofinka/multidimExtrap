@@ -15,28 +15,6 @@ namespace Project
 
     public class Parser : IParser
     {
-        //private int pointAmount;
-        //private int functionDimension;
-
-        public Parser()
-        {
-            //pointAmount = -1;
-            //functionDimension = -1;
-        }
-
-        public static void keepSolution(string outputFile, double[][] points)
-        {
-            using (StreamWriter fs = new StreamWriter(outputFile))
-            {
-
-                for (int i = 0; i < points.Length; i++)
-                {
-                    // points[i][points[i].Length - 1] = 0;
-                    fs.WriteLine(String.Join(" ", points[i]));
-                }
-            }
-        }
-
         public Task parseTask(string pathToTask, IConfig config)
         {
             if (pathToTask.Length == 0)

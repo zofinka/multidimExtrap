@@ -9,6 +9,7 @@ namespace Project
     public interface IAnalyzer
     {
         IClassifier learn_random_forest_on_known_points(Func<double[], double[]> meFunc, Func<double[], double[]> calcDerivative, double allowErr);
+        IClassifier learn_random_forest_on_grid(Func<double[], double[]> meFunc, Func<double[], double[]> calcDerivative, double allowErr);
         void do_random_forest_analyse(IClassifier cls, double allowErr, Func<double[], double[]> meFunc, Func<double[], double[]> calcDerivative);
         double[][] Result { get; }
     }
@@ -16,11 +17,8 @@ namespace Project
     public class Analyzer : IAnalyzer
     {
         IFunction func;
-        //IConfig config;
-        //MeasuredPoint[] xf;
         double[][] xf;
         double[][] xfcandidates;
-        //MeasuredPoint[] xfcandidates;
         Grid grid;
         int[] domain;
         int[][] graph;
@@ -46,16 +44,13 @@ namespace Project
 
         public IFunction Function { get { return func; } }
 
-        //public MeasuredPoint[] Source { get { return xf; } }
         public double[][] Source { get { return xf; } }
 
-        //public MeasuredPoint[] Result { get { return xfcandidates; } }
         public double[][] Result { get { return xfcandidates; } }
 
         public Analyzer(IFunction func, MeasuredPoint[] xf)
         {
             this.func = func;
-            //this.config = config;
             int arrLength = xf[0].inputValues.Length + xf[0].outputValues.Length;
             this.xf = new double[xf.Length][];
             for (int i = 0; i < xf.Length; i++)
@@ -234,6 +229,7 @@ namespace Project
 
         public IClassifier learn_random_forest_on_known_points(Func<double[], double[]> meFunc, Func<double[], double[]> calcDerivative, double allowErr)
         {
+            Console.WriteLine("on points");
             int[] count = new int[N]; for (int i = 0; i < N; i++) count[i] = (Min[i] == Max[i]) ? 1 : NGRID;
             create_grid(count);
             analyse_voronoi();
@@ -270,9 +266,9 @@ namespace Project
 
         }
 
-        public IClassifier learn_random_forest_on_grid(Func<double[], double> meFunc, Func<double[], double[]> calcDerivative, double allowErr)
+        public IClassifier learn_random_forest_on_grid(Func<double[], double[]> meFunc, Func<double[], double[]> calcDerivative, double allowErr)
         {
-
+            Console.WriteLine("on grid");
             int[] count = new int[N]; for (int i = 0; i < N; i++) count[i] = (Min[i] == Max[i]) ? 1 : NGRID;
             create_grid(count);
             analyse_voronoi();
@@ -315,7 +311,10 @@ namespace Project
 
                 // is real function and approximation are equal, class for point
                 int pointClass = 0;
-                if (Math.Abs(meFunc(grid.Node[i]) - cuurentNodeVal) > allowErr)
+                double[] result = meFunc(grid.Node[i]);
+                double sum = 0;
+                Array.ForEach(result, delegate (double item) { sum += item; });
+                if (Math.Abs(sum - cuurentNodeVal) > allowErr)
                 {
                     pointClass = 1;
                 }

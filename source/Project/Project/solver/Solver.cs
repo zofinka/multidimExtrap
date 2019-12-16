@@ -19,32 +19,25 @@ namespace Project
         private IApprox approx;
         private IClassifier cls;
 
-        // DO SMTH WITH IT!!!!
-        public static Func<double[], double[]> func = SzinXCosXCosY.Instance.func;
-        public static Func<double[], double[]> derivativeFunc = SzinXCosXCosY.Instance.derivative;
+        public static Func<double[], double[]> func;
+        public static Func<double[], double[]> derivativeFunc;
+
+        public Solver()
+        {
+            func = TestGetter.getInstance(Approx.testFunction).GetFunc();
+            derivativeFunc = TestGetter.getInstance(Approx.testFunction).GetDerivative();
+        }
 
         public double calculate(Task task)
         {
             approx = new ShepardApprox(config.FunctionDimension, task.originPoints);
             analyzer = new Analyzer((IFunction)approx, task.originPoints);
 
-            IClassifier cls = analyzer.learn_random_forest_on_known_points(func, derivativeFunc, config.Approximation);
+            cls = analyzer.learn_random_forest_on_grid(func, derivativeFunc, config.Approximation);
             analyzer.do_random_forest_analyse(cls, config.Approximation, func, derivativeFunc);
 
             double[][] xx = analyzer.Result;
             MeasuredPoint[] xxMeasured = MeasuredPoint.getArrayFromDouble(xx, config.FunctionDimension);
-            //    = new MeasuredPoint[xx.Length];
-            //for (int i = 0; i < xx.Length; i++)
-            //{
-            //    xxMeasured[i] = new MeasuredPoint(config.FunctionDimension, config.DependentVariablesNum);
-            //    for (int j = 0; j < xx[0].Length; j++)
-            //    {
-            //        if (j < config.FunctionDimension)
-            //            xxMeasured[i].inputValues[j] = xx[i][j];
-            //        else
-            //            xxMeasured[i].outputValues = func(xxMeasured[i].inputValues);
-            //    }
-            //}
             int newPointsAmount = Math.Min(config.PredictionPointAmount, xx.Length);
             config.PointAmount = config.PointAmount + newPointsAmount;
             task.extPoints = new MeasuredPoint[config.PointAmount];

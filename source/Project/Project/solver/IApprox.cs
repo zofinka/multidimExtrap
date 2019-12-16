@@ -17,11 +17,9 @@ namespace Project
         alglib.idwint.idwinterpolant[] z = null;
         MeasuredPoint xy;
 
-        //public ShepardApprox(int N, double[][] xf, int[] index = null)
         public ShepardApprox(int N, MeasuredPoint[] xf, int[] index = null)
         {
             int n = (index == null) ? xf.Length : index.Length;
-            //int NM = xf[0].Length;
             this.N = N;
             this.M = xf[0].outputValues.Length;
             this.Min = (index == null) ? Tools.Min(xf) : Tools.Min(xf, index);
@@ -62,6 +60,16 @@ namespace Project
             else if (xy != null)
                 for (int m = 0; m < M; m++)
                     xf.outputValues[m] = xy.outputValues[m];
+        }
+
+        public override void Calculate(double[] xf)
+        {
+            if (z != null)
+                for (int m = 0; m < M; m++)
+                    xf[N + m] = alglib.idwint.idwcalc(z[m], xf);
+            else if (xy != null)
+                for (int m = 0; m < M; m++)
+                    xf[N + m] = xy.outputValues[m];
         }
 
         public double GetError(double[] oldPoint, double[] newPoint)
