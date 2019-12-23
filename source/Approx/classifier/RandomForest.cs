@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Approx
 {
-    public class RandomForestParams : AMLAlgorithmParams
-    {
+        public class RandomForestParams : AMLAlgorithmParams
+        {
         // Training set size, NPoints>=1
         public int NPoints { get; private set; }
 
@@ -30,7 +26,7 @@ namespace Approx
         public double R { get; private set; }
 
         public RandomForestParams(LabeledData[] xy, int npoints, int nvars, int nclasses,
-                                  int ntrees, int nrndvars, double r) :
+                                  int ntrees, int nrndvars, double r):
                                   base(xy)
         {
             NPoints = npoints;
@@ -42,7 +38,7 @@ namespace Approx
         }
     }
 
-    public class RandomForest : IClassifierML
+    public class RandomForest : IMLAlgorithm
     {
         //use EVS!? (extended variable selection)
         public void train<T>(AMLAlgorithmParams p)
@@ -50,7 +46,7 @@ namespace Approx
             param = p as RandomForestParams;
             if (param == null)
             {
-                throw new ArgumentException("RandomForest::train accepts only RandomForestParams type for parameters object");
+                 throw new ArgumentException("RandomForest::train accepts only RandomForestParams type for parameters object");
             }
 
             // XY - input table, where rows are samples and columns are features.
@@ -74,10 +70,11 @@ namespace Approx
         }
 
         // Make this also generic
-        public void infer(double[] x, out Object label)//where T is convertible from int
+        public void infer(double[] x, out Object label) //where T is convertible from int
         {
             // alglib.dfprocess outputs vector of possibilities for the classes of given data.
-            double[] yp = new double[param.NClasses];
+
+            double[] yp  = new double[param.NClasses];
             alglib.dfprocess(df, x, ref yp);
 
             if (this.param.NClasses > 1)
@@ -97,8 +94,18 @@ namespace Approx
             }
             else
             {
-                label = yp[0];
+                 label = yp[0];    
             }
+
+            // For debug purposes only
+            //Console.WriteLine();
+            //Console.WriteLine("Possibilities vector");
+            //for (int i = 0; i < param.NClasses; i++)
+            //{
+            //    Console.Write(" " + yp[i]);
+            //}
+            //Console.WriteLine("\nEnd of possibilities vector");
+            //Console.WriteLine();
         }
 
         public void validate<T>(LabeledData[] xy, out double modelPrecision) where T : IComparable
@@ -140,5 +147,5 @@ namespace Approx
         // Training report, contains error on a training set
         // and out-of-bag estimates of generalization error.
         alglib.dfreport rep = new alglib.dfreport();
-    }
+        }
 }

@@ -11,13 +11,12 @@ namespace Approx
         public double[] data; // add generic type instead of double.
         public Object label;
 
-        public LabeledData(double[] data, int label)
+        public LabeledData(double[] data, Object label)
         {
             this.data = data;
             this.label = label;
         }
     }
-
     public abstract class AMLAlgorithmParams
     {
         // Training set
@@ -29,7 +28,7 @@ namespace Approx
         }
     }
 
-    public interface IClassifierML
+    public interface IMLAlgorithm
     {
         void train<T>(AMLAlgorithmParams param);
         void infer(double[] x, out Object label);

@@ -28,10 +28,10 @@ namespace Approx
         {
             learnFunctions = new string[] { LG_FUNC };
             testFunction = LG_FUNC;
-            //Console.WriteLine("Please write path to config file:");
-            //configFile = Console.ReadLine();
-            //Console.WriteLine("Please write path to points file:");
-            //pointFile = Console.ReadLine();
+            Console.WriteLine("Please write path to config file:");
+            configFile = Console.ReadLine();
+            Console.WriteLine("Please write path to points file:");
+            pointFile = Console.ReadLine();
             Console.WriteLine(testFunction + " Test START");
 
             IParser parser = new Parser();
@@ -58,7 +58,7 @@ namespace Approx
             {
                 functions[j] = TestFunctionGetter.getInstance(learnFunctions[j]).GetFunc();
             }
-            solver.setCLassifier(functions, task);
+            solver.setRegressor(functions, task);
 
             int i = 0;
             double maxErr = 10;
@@ -70,8 +70,8 @@ namespace Approx
                 i++;
             }
 
-            solver.testResult(Solver.func);
-            Console.WriteLine(testFunction + " Test END in " + i + " iterations");
+            solver.testResult(task.N, task.M, Solver.func);
+            Console.WriteLine(testFunction + "Get " + task.points.Length + " points");
             Console.ReadKey();
         }
     }

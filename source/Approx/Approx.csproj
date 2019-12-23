@@ -54,7 +54,7 @@
     <Compile Include="alglib\linalg.cs" />
     <Compile Include="alglib\optimization.cs" />
     <Compile Include="solver\Analyzer.cs" />
-    <Compile Include="classifier\Classifier.cs" />
+    <Compile Include="classifier\IMLAlgorithm.cs" />
     <Compile Include="solver\Config.cs" />
     <Compile Include="solver\IApprox.cs" />
     <Compile Include="model\Function.cs" />
