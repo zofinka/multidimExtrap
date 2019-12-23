@@ -63,6 +63,7 @@
     <Compile Include="alglib\specialfunctions.cs" />
     <Compile Include="alglib\statistics.cs" />
     <Compile Include="Analyzer.cs" />
+    <Compile Include="CalcOnGrid.cs" />
     <Compile Include="Class1.cs">
       <SubType>Form</SubType>
     </Compile>

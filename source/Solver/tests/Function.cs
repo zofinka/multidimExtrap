@@ -8,7 +8,7 @@ namespace Solver
 {
     namespace Tests
     {
-        abstract class AFunction
+        public abstract class AFunction
         {
             public abstract string configFile { get; }
             public abstract string pointFile { get; }

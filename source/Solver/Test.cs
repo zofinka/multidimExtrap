@@ -47,83 +47,7 @@ namespace Solver
 
         }
 
-       /* private int testWithRandomForest(string configFile, string pointFile, Func<double[], double> func, Func<double[], double[]> derivativeFunc)
-        {
-            Parser parser = new Parser(configFile, pointFile);
-            List<double[]> points = new List<double[]>();
-            points = parser.Points.ToList();
-
-            for (int j = 0; j < 1; j++)
-            {
-                points.AddRange(testDefWayUntilGood(parser, points.ToArray(), func).ToList<double[]>());
-            }
-
-
-            int pointAmount = points.Count;
-
-            Shepard model = new Shepard(parser.N_Dimension, points.ToArray());
-            Analyzer analyzer = new Analyzer(model, points.ToArray());
-            MLAlgorithms.IMLAlgorithm cls = analyzer.learn_random_forest_on_grid(func, derivativeFunc, parser.Approximation);
-
-            double[][] pointsArray = new double[parser.PointAmount][];
-            pointAmount = pointsArray.Length;
-            for (int j = 0; j < parser.PointAmount; j++)
-            {
-                pointsArray[j] = (double[])parser.Points[j].Clone();
-            }
-
-            int i = 0;
-            double maxErr = 10;
-            while (i < 100000000 && maxErr > parser.Approximation)
-            {
-                model = new Shepard(parser.N_Dimension, pointsArray);
-                analyzer = new Analyzer(model, pointsArray);
-                analyzer.do_random_forest_analyse(cls, parser.Approximation, func, derivativeFunc);
-
-                double[][] xx = analyzer.Result;
-                int newPointsAmount = Math.Min(parser.PredictionPointAmount, xx.Length);
-                pointAmount += newPointsAmount;
-
-                List<double[]> newPointsList = points.ToList<double[]>();
-
-                for (int j = 0; j < newPointsAmount; j++)
-                {
-                    var newPoint = (double[])xx[j].Clone();
-                    newPoint[parser.N_Dimension] = func(newPoint);
-                    newPointsList.Add(newPoint);                   
-                }
-
-                points = newPointsList;
-
-                double[][] new_points = new double[newPointsAmount][];
-                for (int j = 0; j < newPointsAmount; j++)
-                {
-                    new_points[j] = new double[xx[j].Length];
-                    Array.Copy(xx[j], new_points[j], xx[j].Length);
-                    model.Calculate(new_points[j]);
-                }
-
-                double tempErr = 0;
-                for (int k = 0; k < new_points.Length; k++)
-                {
-                    var gtPoint = points[pointAmount - newPointsAmount + k][parser.N_Dimension];
-                    var approxPoint = new_points[k][parser.N_Dimension];
-                    var err = Math.Abs(gtPoint - approxPoint);
-                    Console.WriteLine(" \n " + err + " " + gtPoint + " " + approxPoint + " \n ");
-                    if (err > tempErr)
-                    {
-                        tempErr = err;
-                    }
-                    Console.WriteLine("f({0}) real val {1} predict val {2} err {3}", String.Join(", ", xx[k]), gtPoint, approxPoint, err);
-                }
-                maxErr = tempErr;
-                i++;
-            }
-            testResult(parser.N_Dimension, pointsArray, func);
-            return i;
-        }*/
-
-        protected double[][] testDefWayUntilGood(Parser parser, double[][] points, Func<double[], double[]> func)
+         protected double[][] testDefWayUntilGood(Parser parser, double[][] points, Func<double[], double[]> func)
         {
 
             int pointAmount = parser.PointAmount;
@@ -142,7 +66,7 @@ namespace Solver
                 double[][] xx = analyzer.Result;
                 int newPointsAmount = Math.Min(parser.PredictionPointAmount, xx.Length);
                 pointAmount = pointAmount + newPointsAmount;
-                points = getNewPoints(points, analyzer.Result, newPointsAmount, parser.N_Dimension, func);
+                points = getNewPoints(points, analyzer.Result, newPointsAmount, parser, func);
 
 
                 double[][] new_points = new double[newPointsAmount][];
@@ -179,58 +103,7 @@ namespace Solver
             return points;
         }
 
-        /*private int testDefWay(string configFile, string pointFile, Func<double[], double> func)
-        {
-            Parser parser = new Parser(configFile, pointFile);
-            int pointAmount = parser.PointAmount;
-            double[][] points = new double[parser.PointAmount][];
-            for (int j = 0; j < parser.PointAmount; j++)
-            {
-                points[j] = (double[])parser.Points[j].Clone();
-
-            }
-
-            int i = 0;
-            double maxErr = 10;
-            while (i < 100000000 && maxErr > parser.Approximation)
-            {
-                Shepard model = new Shepard(parser.N_Dimension, points);
-                Console.WriteLine("Max " + String.Join(", ", model.Max) + " Min " + String.Join(", ", model.Min));
-                Analyzer analyzer = new Analyzer(model, points);
-                analyzer.do_default_analyse();
-
-                double[][] xx = analyzer.Result;
-                pointAmount = pointAmount + parser.PredictionPointAmount;
-                points = getNewPoints(points, analyzer.Result, parser.PredictionPointAmount, parser.N_Dimension, func);
-
-
-                double[][] new_points = new double[parser.PredictionPointAmount][];
-                for (int j = 0; j < parser.PredictionPointAmount; j++)
-                {
-                    new_points[j] = new double[xx[j].Length];
-                    Array.Copy(xx[j], new_points[j], xx[j].Length);
-                    model.Calculate(new_points[j]);
-                }
-
-                double tempErr = 0;
-                for (int k = 0; k < new_points.Length; k++)
-                {
-                    double err = Math.Abs(points[pointAmount - parser.PredictionPointAmount + k][parser.N_Dimension] - new_points[k][parser.N_Dimension]);
-                    Console.WriteLine(" \n " + (points[pointAmount - parser.PredictionPointAmount + k][parser.N_Dimension] - new_points[k][parser.N_Dimension]) + " " + points[pointAmount - parser.PredictionPointAmount + k][parser.N_Dimension] + " " +  new_points[k][parser.N_Dimension] + " \n ");
-                    if (err > tempErr)
-                    {
-                        tempErr = err;
-                    }
-                    Console.WriteLine("f({0}) real val {1} predict val {2} err {3}", String.Join(", ", xx[k]), points[pointAmount - parser.PredictionPointAmount + k][parser.N_Dimension], new_points[k][parser.N_Dimension], err);
-                }
-                maxErr = tempErr;
-                i++;
-
-            }
-            testResult(parser.N_Dimension, points, func);
-
-            return i;
-        }*/
+        
 
         /*private int testWithRandomForest(string configFileToLearn, string pointFileToLearn, string configFile, string pointFile, Func<double[], double> funcToLearn, Func<double[], double[]> derivativeFuncToLearn, Func<double[], double> func, Func<double[], double[]> derivativeFunc)
         {
@@ -314,28 +187,42 @@ namespace Solver
         }*/
 
 
-        protected double[][] getNewPoints(double[][] oldPoints, double[][] allPointsToCalc, int pointToClacAmout, int functionDementsion, Func<double[], double[]> func)
+        protected double[][] getNewPoints(double[][] oldPoints, double[][] allPointsToCalc, int pointToClacAmout, Parser parser, Func<double[], double[]> func)
         {
-            int newPointAmount = oldPoints.Length + pointToClacAmout;
-            double[][] newPoints = new double[newPointAmount][];
-            for (int j = 0; j < newPointAmount; j++)
-            {
-                if (j < newPointAmount - pointToClacAmout)
-                {
-                    newPoints[j] = (double[])oldPoints[j].Clone();
-                }
-                else
-                {
-                    newPoints[j] = (double[])allPointsToCalc[j - newPointAmount + pointToClacAmout].Clone();
-                    var response = func(newPoints[j]);
+            //int newPointAmount = oldPoints.Length + pointToClacAmout;
+            //double[][] newPoints = new double[newPointAmount][];
+            //for (int j = 0; j < newPointAmount; j++)
+            //{
+            //    if (j < newPointAmount - pointToClacAmout)
+            //    {
+            //        newPoints[j] = (double[])oldPoints[j].Clone();
+            //    }
+            //    else
+            //    {
+            //        newPoints[j] = (double[])allPointsToCalc[j - newPointAmount + pointToClacAmout].Clone();
+            //        var response = func(newPoints[j]);
 
-                    for (int k = functionDementsion , l = 0; k < newPoints[j].Length; ++k, ++l)
-                    {
-                        newPoints[j][k] = response[l];
-                    }
+            //        for (int k = functionDementsion , l = 0; k < newPoints[j].Length; ++k, ++l)
+            //        {
+            //            newPoints[j][k] = response[l];
+            //        }
+            //    }
+            //}
+
+            List<double[]> newPoints = oldPoints.ToList();
+            int newPointAmount = oldPoints.Length + pointToClacAmout;
+            for (int j = 0; j < pointToClacAmout; j++)
+            {
+                double[] new_point = (double[])allPointsToCalc[j].Clone();
+
+                var response = func(new_point);
+                for (int k = 0; k < parser.M_Dimension; ++k)
+                {
+                    new_point[parser.N_Dimension + k] = response[k];
                 }
+                newPoints.Add(new_point);
             }
-            return newPoints;
+            return newPoints.ToArray();
         }
 
         protected void testResult(int nFunctionDimension, int mFunctionDimension, double[][] points, Func<double[], double[]> func)

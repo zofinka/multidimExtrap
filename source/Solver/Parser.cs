@@ -7,7 +7,7 @@ using System.IO;
 
 namespace Solver
 {
-    class Parser
+    public class Parser
     {
         /// <summary>
         /// количество точек которые было расчитано ранее и подается на вход
@@ -239,6 +239,37 @@ namespace Solver
             }
             return 0;
         }
+
+
+        public List<double[]> get_points(string pointFile, int demention)
+        {
+            List<double[]> points = new List<double[]>();
+            
+            using (StreamReader fs = new StreamReader(pointFile))
+            {
+                string temp = "";
+                table = new Dictionary<double[], double[]>();
+
+                temp = fs.ReadLine();
+                while (temp != null)
+                {
+                    var point = new double[demention];
+
+                    string[] strItems = temp.Split(';');
+                    for (int j = 0; j < demention; j++)
+                    {
+                        point[j] = double.Parse(strItems[j]);
+                    }
+                    
+                    points.Add(point);
+
+                    temp = fs.ReadLine();
+                }
+            }
+            
+            return points;
+        }
+
 
         public Dictionary<double[], double[]> getTable()
         {

@@ -25,6 +25,7 @@ namespace Solver
                 return new double[1] { res + 2 };
             }
 
+
             public override double[] derivative(double[] points)
             {
                 double[] derivative = new double[points.Length - 1];

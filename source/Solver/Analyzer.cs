@@ -59,12 +59,12 @@ namespace Solver
             best_ever_analyse();
         }
 
-        public void do_quicker_analyse()
+        public void do_quicker_analyse(List<double[]> excludes = null)
         {
             int[] count = new int[N]; for (int i = 0; i < N; i++) count[i] = (Min[i] == Max[i]) ? 1 : NGRID;
             create_grid(count);
             analyse_voronoi();
-            quick_best_ever_analyse();
+            quick_best_ever_analyse(excludes);
         }
 
         public void do_dichotomy_analyse()
@@ -145,7 +145,33 @@ namespace Solver
             analyse_error();
         }
 
-        
+        static public int gridPointsAmount(Parser parser)
+        {
+            int gridPointsAmount = 0;
+            Shepard def_model = new Shepard(parser.N_Dimension, parser.Points);
+            int[] count = new int[def_model.N];
+            for (int i = 0; i < def_model.N; i++) count[i] = (def_model.Min[i] == def_model.Max[i]) ? 1 : NGRID;
+            Grid grid = new Grid(def_model.N, def_model.M, def_model.Min, def_model.Max, count);
+            for (int i = 0; i < grid.Node.Length; i++)
+            {
+                bool in_range = true;
+                for (int j = 0; j < def_model.N; j++)
+                {
+                    if (grid.Node[i][j] > def_model.Max[j] || grid.Node[i][j] < def_model.Min[j])
+                    {
+                        in_range = false;
+                    }
+                }
+                if (in_range)
+                {
+                    gridPointsAmount++;
+                }
+            }
+
+            return gridPointsAmount;
+        }
+
+
         public void do_random_forest_analyse(MLAlgorithms.IMLAlgorithm rg, Func<double[], IFunction, Grid, double[], double[][], int, double[]> build_features)
         {
             int[] count = new int[N]; for (int i = 0; i < N; i++) count[i] = (Min[i] == Max[i]) ? 1 : NGRID;
@@ -174,16 +200,53 @@ namespace Solver
 
             var sortedImproveDiffs = improveDiffs.OrderByDescending((t) => t.Item1).ToList();
 
-            for (int i = 0; i < grid.Node.Length; i++)
+            double[] step = grid.step;
+
+            List<int> bestCandidates = new List<int>();
+            int firstBestCandidate = sortedImproveDiffs[0].Item2;
+            bestCandidates.Add(firstBestCandidate);
+
+            int[] handledDomains = new int[xf.Length];
+            handledDomains[domain[firstBestCandidate]] = 1;
+
+            for (int i = 1; i < sortedImproveDiffs.Count; ++i)
             {
-                candidates[i] = sortedImproveDiffs[i].Item2;
+                int candidateIndex = sortedImproveDiffs[i].Item2;
+                int dom = domain[candidateIndex];
+                if (handledDomains[dom] == 0)
+                {
+                    bool far = true;
+                    foreach (var otherCandIndex in bestCandidates)
+                    {
+                        var diffs = grid.Node[candidateIndex].Zip(grid.Node[otherCandIndex], (d1, d2) => Math.Abs(d1 - d2)).ToArray();
+
+                        for (int j = 0; j < this.func.N; ++j)
+                        {
+                            far &= (Math.Abs(diffs[j] - step[j]) >= Math.Pow(10, -3));
+                        }
+                    }
+
+                    if (far)
+                    {
+                        bestCandidates.Add(candidateIndex);
+                        handledDomains[dom] = 1;
+                    }
+                }
             }
 
-            //double z;
-            //rg.validate<double>(ldata, out z);
-            //Console.WriteLine("Z " + z);
-
+            candidates = bestCandidates.ToArray();
             xfcandidates = Tools.Sub(grid.Node, candidates);
+
+            //for (int i = 0; i < grid.Node.Length; i++)
+            //{
+            //    candidates[i] = sortedImproveDiffs[i].Item2;
+            //}
+
+            ////double z;
+            ////rg.validate<double>(ldata, out z);
+            ////Console.WriteLine("Z " + z);
+
+            //xfcandidates = Tools.Sub(grid.Node, candidates);
         }
 
         public void do_random_forest_analyse(MLAlgorithms.IMLAlgorithm cls, double allowErr, Func<double[], double> meFunc, Func<double[], double[]> calcDerivative)
@@ -287,6 +350,70 @@ namespace Solver
             xfcandidates = Tools.Sub(grid.Node, candidates);
         }
 
+        static public void analyze_accurasy(Tests.AFunction function, string fileP, int step)
+        {
+
+            Parser parser = new Parser(function.configFile, function.pointFile, function.tableFile);
+            //Parser parser = new Parser(function.configFile, function.pointFile, null);
+            if (function.tableFile != null)
+            {
+                function.table = parser.getTable();
+            }
+
+            //List<double[]> points = parser.Points.ToList();
+            //points.AddRange(parser.get_points(fileP, parser.NM_Dimension));
+            List<double[]> points = parser.get_points(fileP, parser.NM_Dimension);
+            for (int i = step; i < points.Count; i += step)
+                //for (int i = 1880; i < 1900; i += 1)
+            {
+                Console.WriteLine("Points amount  " + i + " accuracy " +  calc_err(function.func, points.GetRange(0, i), parser));
+                //Console.WriteLine("Points  " + String.Join(", ", points[i]));
+            }
+
+        }
+
+        static double calc_err(Func<double[], double[]> func, List<double[]> points, Parser parser)
+        {
+            // TODO add calc by integrall
+            Shepard def_model = new Shepard(parser.N_Dimension, points.ToArray());
+            int[] count = new int[def_model.N];
+            for (int i = 0; i < def_model.N; i++) count[i] = (def_model.Min[i] == def_model.Max[i]) ? 1 : NGRID;
+            Grid grid = new Grid(def_model.N, def_model.M, def_model.Min, def_model.Max, count);
+            double sum = 0;
+            int numInSum = 0;
+            for (int i = 0; i < grid.Node.Length; i++)
+            {
+                bool in_range = true;
+                for (int j = 0; j < def_model.N; j++)
+                {
+                    if (grid.Node[i][j] > def_model.Max[j] || grid.Node[i][j] < def_model.Min[j])
+                    {
+                        in_range = false;
+                    }
+                }
+                if (in_range)
+                {
+                    double[] grid_node = (double[])grid.Node[i].Clone();
+                    def_model.Calculate(grid_node);
+                    double[] approxFunctionVal = new double[def_model.M];
+
+                    for (int j = 0; j < def_model.M; ++j)
+                    {
+                        approxFunctionVal[j] = grid_node[def_model.N + j];
+                    }
+
+                    double[] realFunctionVal = func(grid.Node[i]);
+
+                    double[] diffs = realFunctionVal.Zip(approxFunctionVal, (d1, d2) => Math.Abs(d1 - d2)).ToArray();
+
+                    sum += (diffs.Sum() / diffs.Length);
+                    numInSum++;
+                }
+            }
+
+            return (double)sum / numInSum;
+        }
+
         private double[] build_fetures_from_existing_points(int i, Func<double[], double[]> calcDerivative) 
         {
             // min, max in locality
@@ -342,110 +469,7 @@ namespace Solver
 
         
 
-        /*public MLAlgorithms.IMLAlgorithm learn_random_forest_on_grid(Func<double[], double> meFunc, Func<double[], double[]> calcDerivative, double allowErr)
-        {
-
-            Console.WriteLine("MN " + M + " " + N );
-            int[] count = new int[N]; for (int i = 0; i < N; i++) count[i] = (Min[i] == Max[i]) ? 1 : NGRID;
-            create_grid(count);
-            analyse_voronoi();
-            analyse_all_error();
-
-            int n = grid.Node.Length;// + xf.Length;
-            // int n = grid.Node.Length;
-            MLAlgorithms.LabeledData[] ldata = new MLAlgorithms.LabeledData[n];
-            int featureCount = 0;
-            for (int i = 0; i < grid.Node.Length; i++)
-            {
-                // min, max in locality
-                double maxNeighbours = double.MinValue;
-                double minNeighbours = double.MaxValue;
-                foreach (var neighbour in grid.Neighbours(i))
-                {
-                    double[] calcNeighbour = (double[])grid.Node[neighbour].Clone();
-                    this.func.Calculate(calcNeighbour);
-                    if (calcNeighbour[calcNeighbour.Length - 1] < minNeighbours)
-                    {
-                        minNeighbours = calcNeighbour[calcNeighbour.Length - 1];
-                    }
-                    if (calcNeighbour[calcNeighbour.Length - 1] > maxNeighbours)
-                    {
-                        maxNeighbours = calcNeighbour[calcNeighbour.Length - 1];
-                    }
-                }
-                // current val
-                double[] cuurentNode = (double[])grid.Node[i].Clone();
-                this.func.Calculate(cuurentNode);
-                double cuurentNodeVal = cuurentNode[cuurentNode.Length - 1];
-                if (cuurentNodeVal < minNeighbours)
-                {
-                    minNeighbours = cuurentNodeVal;
-                }
-                if (cuurentNodeVal > maxNeighbours)
-                {
-                    maxNeighbours = cuurentNodeVal;
-                }
-
-                // is real function and approximation are equal, class for point
-                int pointClass = 0;
-                if (Math.Abs(meFunc(grid.Node[i]) - cuurentNodeVal) > allowErr)
-                {
-                    pointClass = 1;
-                }
-
-                //derivative 
-                double[] derivative = calcDerivative(grid.Node[i]);
-
-                // build features vector
-                double[] features = new double[2];
-                //features[0] = borderdist[i];
-                //features[0] = error[i];
-                features[0] = Math.Abs(cuurentNodeVal - maxNeighbours);
-                features[1] = Math.Abs(minNeighbours - cuurentNodeVal);
-                //features[0] = maxNeighbours - cuurentNodeVal;
-                //features[1] = cuurentNodeVal - minNeighbours;
-                //features[2] = error[i];
-                //features[3] = cuurentNodeVal;
-                //for (int k = 0; k < derivative.Length; k++)
-                //{
-                //    features[2 + k] = derivative[k];
-                //}
-
-                ldata[i] = new MLAlgorithms.LabeledData(features, pointClass);
-                featureCount = features.Length;
-            }
-
-
-            MLAlgorithms.IMLAlgorithm cls = new MLAlgorithms.RandomForest();
-            MLAlgorithms.RandomForestParams ps = new MLAlgorithms.RandomForestParams(ldata, n   ,
-                                                                                          featureCount   ,
-                                                                                          2   ,
-                                                                                          100  ,
-                                                                                          1   ,
-                                                                                          0.7 
-                                                                                              );
-
-            cls.train(ps);
-            double trainModelPrecision;
-            cls.validate(ldata, out trainModelPrecision);
-            for (int i = 0; i < 10; i++)
-            {
-                int y;
-                cls.infer(ldata[i].data, out y);
-                double[] cuurentNode = (double[])grid.Node[i].Clone();
-                this.func.Calculate(cuurentNode);
-                int pointClass = 0;
-                if (Math.Abs(meFunc(grid.Node[i]) - cuurentNode[cuurentNode.Length - 1]) > allowErr)
-                {
-                    pointClass = 1;
-                }
-
-              //  Console.WriteLine(" pointClass " + pointClass + " y " + y);
-            }
-
-            //Console.WriteLine("Model precision on training dataset: " + trainModelPrecision);
-            return cls;
-        }*/
+        
 
         public Analyzer(IFunction func, double[][] xf, int[] count)
         {
@@ -616,7 +640,7 @@ namespace Solver
             return res;
         }
 
-        private void quick_best_ever_analyse()
+        private void quick_best_ever_analyse(List<double[]> exludes = null)
         {
             //Console.WriteLine("Интерполяция ошибки аппроксимации функции на области доменов");
             //интерполирую ошибку

@@ -122,7 +122,7 @@ namespace Solver
                 double[][] xx = analyzer.Result;
                 predictionPointAmount = xx.Length;
                 pointAmount = pointAmount + predictionPointAmount;
-                points = getNewPoints(points, analyzer.Result, predictionPointAmount, parser.N_Dimension, func);
+                points = getNewPoints(points, analyzer.Result, predictionPointAmount, parser, func);
 
                 double[][] new_points = new double[predictionPointAmount][];
                 for (int j = 0; j < predictionPointAmount; j++)
