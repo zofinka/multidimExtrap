@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Project
+namespace Approx
 {
     public interface IParser
     {
@@ -28,7 +28,7 @@ namespace Project
                 Console.WriteLine("The file with calculated points is not exists: " + pathToTask);
                 return null;
             }
-            Task task = new Task(config.PointAmount, config.PredictionPointAmount);
+            Task task = new Task(config.PointAmount, config.FunctionDimension, config.DependentVariablesNum);
             using (StreamReader fs = new StreamReader(pathToTask))
             {
                 string temp = "";
@@ -39,20 +39,15 @@ namespace Project
                     {
                         break;
                     }
-                    task.originPoints[i] = new MeasuredPoint(config.FunctionDimension, config.DependentVariablesNum);
                     string[] strItems = temp.Split(' ');
                     if (strItems.Length != config.FunctionDimension + config.DependentVariablesNum)
                     {
                         Console.WriteLine("The vector " + temp + " length is not equel function demention " + config.FunctionDimension);
                         continue;
                     }
-                    for (int j = 0; j < config.FunctionDimension; j++)
+                    for (int j = 0; j < config.FunctionDimension + config.DependentVariablesNum; j++)
                     {
-                        task.originPoints[i].inputValues[j] = double.Parse(strItems[j]);
-                    }
-                    for (int j = 0; j < config.DependentVariablesNum; j++)
-                    {
-                        task.originPoints[i].outputValues[j] = double.Parse(strItems[config.FunctionDimension + j]);
+                        task.points[i][j] = double.Parse(strItems[j]);
                     }
                 }
             }

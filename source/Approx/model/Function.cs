@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Project
+namespace Approx
 {
     public interface IFunction
     {
@@ -45,7 +45,7 @@ namespace Project
 
         public double[] Max { get; set; } = null;
 
-        public abstract void Calculate(MeasuredPoint xf);
+        //public abstract void Calculate(MeasuredPoint xf);
 
         public abstract void Calculate(double[] xf);
     }

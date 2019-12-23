@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Project
+namespace Approx
 {
     public interface ISolver
     {
@@ -29,6 +29,7 @@ namespace Project
         const int NGRID = 100;
         int featureCount = 0;
         int TreesCount = 100;
+        static double[] dist;
 
         public Solver()
         {
@@ -43,49 +44,85 @@ namespace Project
 
         public double calculate(Task task)
         {
-            approx = new ShepardApprox(config.FunctionDimension, task.originPoints);
-            analyzer = new Analyzer((IFunction)approx, task.originPoints);
+            approx = new ShepardApprox(config.FunctionDimension, task.points);
+            analyzer = new Analyzer((IFunction)approx, task.points);
             analyzer.do_random_forest_analyse(cls, build_features);
 
+            double[][] pointsArray = task.points;
+            int pointAmount = task.points.Length;
             double[][] xx = analyzer.Result;
-            MeasuredPoint[] xxMeasured = MeasuredPoint.getArrayFromDouble(xx, config.FunctionDimension);
             int newPointsAmount = Math.Min(config.PredictionPointAmount, xx.Length);
-            config.PointAmount = config.PointAmount + newPointsAmount;
-            task.extPoints = new MeasuredPoint[config.PointAmount];
-
-            for (int j = 0; j < config.PointAmount; j++)
-            {
-                if (j < config.PointAmount - newPointsAmount)
-                {
-                    task.extPoints[j] = (MeasuredPoint)task.originPoints[j].Clone();
-                }
-                else
-                {
-                    task.extPoints[j] = xxMeasured[j - config.PointAmount + newPointsAmount];
-                }
-            }
-
-            task.originPoints= task.extPoints;
-
-            MeasuredPoint[] new_points = new MeasuredPoint[newPointsAmount];
+            pointAmount = pointAmount + newPointsAmount;
+            List<double[]> newPoints = new List<double[]>();
+            newPoints = pointsArray.ToList();
             for (int j = 0; j < newPointsAmount; j++)
             {
-                new_points[j] = (MeasuredPoint)xxMeasured[j].Clone();
+                double[] new_point = (double[])xx[j].Clone();
+
+                var response = task.function(new_point);
+                for (int k = 0; k < config.DependentVariablesNum; ++k)
+                {
+                    new_point[config.FunctionDimension + k] = response[k];
+                }
+                newPoints.Add(new_point);
+            }
+
+            pointsArray = newPoints.ToArray();
+
+            double[][] new_points = new double[newPointsAmount][];
+            for (int j = 0; j < newPointsAmount; j++)
+            {
+                new_points[j] = new double[xx[j].Length];
+                Array.Copy(xx[j], new_points[j], xx[j].Length);
                 approx.Calculate(new_points[j]);
             }
 
-            double tempErr = 0;
+            //Нужно не максимальную ошибку считать, а среднюю.
+            double totalErr = 0.0;
             for (int k = 0; k < new_points.Length; k++)
             {
-                double err = approx.GetError(task.originPoints[config.PointAmount - newPointsAmount + k].outputValues, new_points[k].outputValues);
-                if (err > tempErr)
+                var realPoint = newPoints[pointAmount - config.PredictionPointAmount + k];
+                double[] realFunctionVal = new double[config.DependentVariablesNum];
+
+                for (int l = 0; l < config.DependentVariablesNum; ++l)
                 {
-                    tempErr = err;
+                    realFunctionVal[l] = realPoint[config.FunctionDimension + l];
                 }
-                Console.WriteLine("f({0}) real val {1} predict val {2} err {3}", String.Join(", ", xxMeasured[k].inputValues),
-                    String.Join(", ", task.originPoints[config.PointAmount - newPointsAmount + k].outputValues), String.Join(", ", new_points[k].outputValues), err);
+
+                var approxPoint = new_points[k];
+                double[] approxFunctionVal = new double[config.DependentVariablesNum];
+
+                for (int l = 0; l < config.DependentVariablesNum; ++l)
+                {
+                    approxFunctionVal[l] = approxPoint[config.FunctionDimension + l];
+                }
+
+                double[] diffs = realFunctionVal.Zip(approxFunctionVal, (d1, d2) => Math.Abs(d1 - d2)).ToArray();
+
+                double err = (diffs.Sum() / diffs.Length);
+
+                Console.WriteLine(" \n " + err + " " + String.Join(", ", realFunctionVal) + " " + String.Join(", ", approxFunctionVal) + " \n ");
+                totalErr += err;
+                Console.WriteLine("f({0}) real val {1} predict val {2} err {3}", String.Join(", ", xx[k]), String.Join(", ", realFunctionVal), String.Join(", ", approxFunctionVal), err);
             }
-            return tempErr;
+            task.points = pointsArray;
+            config.PointAmount = pointsArray.Length;
+            return totalErr;
+            //maxErr = totalErr / new_points.Length;
+            //totalPointsCount = pointsArray.Length;
+            //i++;
+
+            //for (int k = 0; k < new_points.Length; k++)
+            //{
+            //    double err = approx.GetError(task.originPoints[config.PointAmount - newPointsAmount + k].outputValues, new_points[k].outputValues);
+            //    if (err > tempErr)
+            //    {
+            //        tempErr = err;
+            //    }
+            //    Console.WriteLine("f({0}) real val {1} predict val {2} err {3}", String.Join(", ", xxMeasured[k].inputValues),
+            //        String.Join(", ", task.originPoints[config.PointAmount - newPointsAmount + k].outputValues), String.Join(", ", new_points[k].outputValues), err);
+            //}
+            //return tempErr;
         }
 
         public void setConfig(IConfig config)
@@ -93,32 +130,26 @@ namespace Project
             this.config = config;
         }
 
-
-
-        protected double[][] testDefWayUntilGood(IConfig config, MeasuredPoint[] measuredPoints, Func<double[], double[]> func)
+        protected double[][] testDefWayUntilGood(double[][] points, Func<double[], double[]> func)
         {
-
             int pointAmount = config.PointAmount;
 
             int i = 0;
             double maxErr = 10;
             int goodPr = 0;
-            double[][] points = null;
             while (i < 100000000 && maxErr > config.Approximation && goodPr < 50)
             {
-                ShepardApprox model = new ShepardApprox(config.FunctionDimension, measuredPoints);
-                Analyzer analyzer = new Analyzer(model, measuredPoints);
+                ShepardApprox model = new ShepardApprox(config.FunctionDimension, points);
+                Analyzer analyzer = new Analyzer(model, points);
                 analyzer.do_default_analyse();
                 goodPr = analyzer.getGoodPr(func, config.Approximation);
                 Console.WriteLine("Good pr " + goodPr);
 
                 double[][] xx = analyzer.Result;
-                MeasuredPoint[] xxMeasured = MeasuredPoint.getArrayFromDouble(xx, config.FunctionDimension);
                 int newPointsAmount = Math.Min(config.PredictionPointAmount, xx.Length);
-                points = Task.getArray(measuredPoints);
-
                 pointAmount = pointAmount + newPointsAmount;
                 points = getNewPoints(points, analyzer.Result, newPointsAmount, config.FunctionDimension, func);
+
 
                 double[][] new_points = new double[newPointsAmount][];
                 for (int j = 0; j < newPointsAmount; j++)
@@ -139,14 +170,17 @@ namespace Project
                 }
                 maxErr = tempErr;
                 i++;
+
             }
-            measuredPoints = MeasuredPoint.getArrayFromDouble(points, config.FunctionDimension);
-            ShepardApprox model1 = new ShepardApprox(config.FunctionDimension, measuredPoints);
-            Analyzer analyzer1 = new Analyzer(model1, measuredPoints);
+            ShepardApprox model1 = new ShepardApprox(config.FunctionDimension, points);
+            Analyzer analyzer1 = new Analyzer(model1, points);
             analyzer1.do_default_analyse();
 
+
+            //return analyzer1.getGoodSamples(func, parser.Approximation, goodPr);
             return points;
         }
+
         protected double[][] getNewPoints(double[][] oldPoints, double[][] allPointsToCalc, int pointToClacAmout, int functionDementsion, Func<double[], double[]> func)
         {
             int newPointAmount = oldPoints.Length + pointToClacAmout;
@@ -357,90 +391,56 @@ namespace Project
 
         private double[] build_features(double[] point, IFunction model, Grid grid, double[] distToKnownPoints, double[][] knownPoints = null, int index = -1)
         {
-            this.featureCount = 4;
-            MeasuredPoint[] measuredPoint = null;
-            if (knownPoints != null)
-            {
-                measuredPoint = MeasuredPoint.getArrayFromDouble(knownPoints, config.FunctionDimension);
-            }
-
-            Analyzer analyzer = new Analyzer(model, measuredPoint);
-            analyzer.do_some_analyse();
-
+            // на сколько образующая домен точка близка
+            // сколько до и после монотонно
+            // расстояние до известной точки
+            featureCount = 3 + (point.Length - 1);
+            double[] features = new double[featureCount];
             // min, max in locality
-            double maxNeighbours = double.MinValue;
-            double minNeighbours = double.MaxValue;
+            double maxNeighboursVal = double.MinValue;
+            double[] maxNeighbours = new double[point.Length];
+            double minNeighboursVal = double.MaxValue;
+            double[] minNeighbours = new double[point.Length];
+            grid.ToIndex(point, out index);
             foreach (var neighbour in grid.Neighbours(index))
             {
                 double[] calcNeighbour = (double[])grid.Node[neighbour].Clone();
                 model.Calculate(calcNeighbour);
-
-                double calcNeighbourVal = 0;
-
-                for (int l = 0; l < model.M; ++l)
+                if (calcNeighbour[calcNeighbour.Length - 1] < minNeighboursVal)
                 {
-                    calcNeighbourVal = calcNeighbour[model.N + l];
+                    minNeighboursVal = calcNeighbour[calcNeighbour.Length - 1];
+                    minNeighbours = (double[])calcNeighbour.Clone();
                 }
-                calcNeighbourVal = calcNeighbourVal / model.M;
-
-                if (calcNeighbour[calcNeighbour.Length - 1] < minNeighbours)
+                if (calcNeighbour[calcNeighbour.Length - 1] > maxNeighboursVal)
                 {
-                    //minNeighbours = calcNeighbour[calcNeighbour.Length - 1];
-                    minNeighbours = calcNeighbourVal;
-                }
-                if (calcNeighbour[calcNeighbour.Length - 1] > maxNeighbours)
-                {
-                    //maxNeighbours = calcNeighbour[calcNeighbour.Length - 1];
-                    maxNeighbours = calcNeighbourVal;
+                    maxNeighboursVal = calcNeighbour[calcNeighbour.Length - 1];
+                    maxNeighbours = (double[])calcNeighbour.Clone();
                 }
             }
             // current val
             double[] curentNode = (double[])grid.Node[index].Clone();
             model.Calculate(curentNode);
-            double curentNodeVal = 0;
-
-            for (int l = 0; l < model.M; ++l)
+            double curentNodeVal = curentNode[curentNode.Length - 1];
+            if (curentNodeVal < minNeighboursVal)
             {
-                curentNodeVal = curentNode[model.N + l];
+                minNeighboursVal = curentNodeVal;
             }
-            curentNodeVal = curentNodeVal / model.M;
-
-            if (curentNodeVal < minNeighbours)
+            if (curentNodeVal > maxNeighboursVal)
             {
-                minNeighbours = curentNodeVal;
-            }
-            if (curentNodeVal > maxNeighbours)
-            {
-                maxNeighbours = curentNodeVal;
+                maxNeighboursVal = curentNodeVal;
             }
 
-            List<double[]> temp_points = new List<double[]>();
-            temp_points = knownPoints.ToList();
-            temp_points.RemoveAt(analyzer.Domain(grid.Node[index]));
-            measuredPoint = MeasuredPoint.getArrayFromDouble(temp_points.ToArray(), config.FunctionDimension);
-            ShepardApprox new_model = new ShepardApprox(model.N, measuredPoint);
-            double[] old_model_point = (double[])grid.Node[index].Clone();
-            model.Calculate(old_model_point);
-            double[] new_model_point = (double[])grid.Node[index].Clone();
-            new_model.Calculate(new_model_point);
 
-            double err = 0;
-            for (int k = 0; k < model.M; ++k)
-            {
-                err = Math.Abs(old_model_point[model.N + k] - new_model_point[model.N + k]);
-            }
-
-            err = err / model.M;
-
-            // build features vector
-
-            double[] features = new double[featureCount];
-            features[0] = Math.Abs(curentNodeVal - maxNeighbours);
-            features[1] = Math.Abs(minNeighbours - curentNodeVal);
-
+            features[0] = Math.Abs(curentNodeVal - maxNeighboursVal);
+            //  features[1] = distanceX(curentNode, maxNeighbours, model.N);
+            features[1] = Math.Abs(curentNodeVal - minNeighboursVal);
             features[2] = distToKnownPoints[index];
-            features[3] = err;
-            //features[4] = monotonicNode[0];
+
+            for (int i = 0; i < point.Length - 1; ++i)
+            {
+                features[3 + i] = point[i];
+            }
+            //  features[3] = distanceX(curentNode, maxNeighbours, model.N);
 
             return features;
         }
@@ -448,26 +448,24 @@ namespace Project
         private LabeledData[] collect_samples(Func<double[], double[]>[] functions, Task task)
         {
             List<LabeledData> ldata = new List<LabeledData>();
-            foreach (Func<double[], double[]> f in functions)
+            foreach (Func<double[], double[]> func in functions)
             {
-                //Parser p = new Parser(f.configFile, f.pointFile, f.tableFile);
-                //if (f.tableFile != null)
-                //{
-                //    f.table = p.getTable();
-                //}
                 int j = 0;
                 while (j < 1)
                 {
-                    List<double[]> points = get_start_points(j, task, f);
-                    MeasuredPoint[] measuredPoints = MeasuredPoint.getArrayFromDouble(points.ToArray(), config.FunctionDimension);
-                    points.AddRange(testDefWayUntilGood(config, measuredPoints, f).ToList<double[]>());
+                    List<double[]> points = get_start_points(j, task, func);
 
-                    ShepardApprox def_model = new ShepardApprox(config.FunctionDimension, task.originPoints);
+                    for (int k = 0; k < 1; k++)
+                    {
+                        points.AddRange(testDefWayUntilGood(points.ToArray(), func).ToList<double[]>());
+                    }
+
+                    ShepardApprox def_model = new ShepardApprox(config.FunctionDimension, points.ToArray());
                     int[] count = new int[config.FunctionDimension];
                     for (int i = 0; i < config.FunctionDimension; i++)
                         count[i] = (def_model.Min[i] == def_model.Max[i]) ? 1 : NGRID;
                     Grid grid = new Grid(def_model.N, def_model.M, def_model.Min, def_model.Max, count);
-                    double[] dist = update_path_to_knowing_points(grid, points.ToArray(), config.FunctionDimension);
+                    Solver.dist = update_path_to_knowing_points(grid, points.ToArray(), config.FunctionDimension);
 
                     int n = grid.Node.Length;
                     for (int i = 0; i < grid.Node.Length; i++)
@@ -481,7 +479,7 @@ namespace Project
                             approxFunctionVal[k] = cuurentNode[def_model.N + k];
                         }
 
-                        var realFunctionVal = f(grid.Node[i]);
+                        var realFunctionVal = func(grid.Node[i]);
 
                         double[] diffs = realFunctionVal.Zip(approxFunctionVal, (d1, d2) => Math.Abs(d1 - d2)).ToArray();
 
@@ -494,7 +492,7 @@ namespace Project
                         }
                         //double pointClass = err;
 
-                        double[] features = build_features(grid.Node[i], def_model, grid, dist, points.ToArray(), i);
+                        double[] features = build_features(grid.Node[i], def_model, grid, Solver.dist, points.ToArray(), i);
                         ldata.Add(new LabeledData(features, pointClass));
                         featureCount = features.Length;
                     }
@@ -506,18 +504,18 @@ namespace Project
             return ldata.ToArray();
         }
 
+
         private List<double[]> get_start_points(int i, Task task, Func<double[], double[]> func)
         {
-            double[][] origPoints = Task.getArray(task.originPoints);
             if (i == 0)
             {
-                return origPoints.ToList();
+                return task.points.ToList();
             }
             else
             {
                 List<double[]> points = new List<double[]>();
                 Random random = new Random();
-                for (int j = 0; j < origPoints.Length; j++)
+                for (int j = 0; j < task.points.Length; j++)
                 {
                     double[] point = new double[config.FunctionDimension + config.DependentVariablesNum];
                     for (int k = 0; k < config.FunctionDimension; k++)

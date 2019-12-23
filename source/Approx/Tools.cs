@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Project
+namespace Approx
 {
     public static class Tools
     {
@@ -65,23 +65,6 @@ namespace Project
             double[][] sub = new double[index.Length][];
             for (int i = 0; i < index.Length; i++)
                 sub[i] = items[index[i]];
-            return sub;
-        }
-
-        public static MeasuredPoint[] Sub(this double[][] items, int[] index, IConfig config)
-        {
-            MeasuredPoint[] sub = new MeasuredPoint[index.Length];
-            for (int i = 0; i < index.Length; i++)
-            {
-                sub[i] = new MeasuredPoint(config.FunctionDimension, config.DependentVariablesNum);
-                for (int j = 0; j < items[index[i]].Length; j++)
-                {
-                    if (j < config.FunctionDimension)
-                        sub[i].inputValues[j] = items[index[i]][j];
-                    else
-                        sub[i].outputValues[j - config.FunctionDimension] = items[index[i]][j];
-                }
-            }
             return sub;
         }
 
@@ -179,28 +162,6 @@ namespace Project
             return min;
         }
 
-        public static double[] Min(MeasuredPoint[] xf)
-        {
-            int count = xf.Length;
-            double[] min = new double[xf[0].inputValues.Length + xf[0].outputValues.Length];
-            for (int i = 0; i < xf.Length; i++)
-                for (int j = 0; j < min.Length; j++)
-                {
-                    if (j < xf[0].inputValues.Length)
-                    {
-                        if (i == 0)
-                            min[j] = xf[i].inputValues[j];
-                        if (min[j] > xf[i].inputValues[j]) min[j] = xf[i].inputValues[j];
-                    } else
-                    {
-                        if (i == 0)
-                            min[j] = xf[i].outputValues[j - xf[0].inputValues.Length];
-                        if (min[j] > xf[i].outputValues[j - xf[0].inputValues.Length]) min[j] = xf[i].outputValues[j - xf[0].inputValues.Length];
-                    }
-                }
-            return min;
-        }
-
         public static double[] Max(double[][] xf)
         {
             int count = xf.Length;
@@ -209,29 +170,6 @@ namespace Project
             for (int i = 0; i < xf.Length; i++)
                 for (int j = 0; j < max.Length; j++)
                     if (max[j] < xf[i][j]) max[j] = xf[i][j];
-            return max;
-        }
-
-        public static double[] Max(MeasuredPoint[] xf)
-        {
-            int count = xf.Length;
-            double[] max = new double[xf[0].inputValues.Length + xf[0].outputValues.Length];
-            for (int i = 0; i < xf.Length; i++)
-                for (int j = 0; j < max.Length; j++)
-                {
-                    if (j < xf[0].inputValues.Length)
-                    {
-                        if (i == 0)
-                            max[j] = xf[i].inputValues[j];
-                        if (max[j] < xf[i].inputValues[j]) max[j] = xf[i].inputValues[j];
-                    }
-                    else
-                    {
-                        if (i == 0)
-                            max[j] = xf[i].outputValues[j - xf[0].inputValues.Length];
-                        if (max[j] < xf[i].outputValues[j - xf[0].inputValues.Length]) max[j] = xf[i].outputValues[j - xf[0].inputValues.Length];
-                    }
-                }
             return max;
         }
 
@@ -246,29 +184,6 @@ namespace Project
             return min;
         }
 
-        public static double[] Min(MeasuredPoint[] xf, int[] index)
-        {
-            int count = xf.Length;
-            double[] min = new double[xf[0].inputValues.Length + xf[0].outputValues.Length];
-            foreach (var i in index)
-                for (int j = 0; j < min.Length; j++)
-                {
-                    if (j < xf[0].inputValues.Length)
-                    {
-                        if (i == 0)
-                            min[j] = xf[i].inputValues[j];
-                        if (min[j] > xf[i].inputValues[j]) min[j] = xf[i].inputValues[j];
-                    }
-                    else
-                    {
-                        if (i == 0)
-                            min[j] = xf[i].outputValues[j - xf[0].inputValues.Length];
-                        if (min[j] > xf[i].outputValues[j - xf[0].inputValues.Length]) min[j] = xf[i].outputValues[j - xf[0].inputValues.Length];
-                    }
-                }
-            return min;
-        }
-
         public static double[] Max(double[][] xf, int[] index)
         {
             int count = index.Length;
@@ -280,27 +195,5 @@ namespace Project
             return max;
         }
 
-        public static double[] Max(MeasuredPoint[] xf, int[] index)
-        {
-            int count = xf.Length;
-            double[] max = new double[xf[0].inputValues.Length + xf[0].outputValues.Length];
-            foreach (var i in index)
-                for (int j = 0; j < max.Length; j++)
-                {
-                    if (j < xf[0].inputValues.Length)
-                    {
-                        if (i == 0)
-                            max[j] = xf[i].inputValues[j];
-                        if (max[j] < xf[i].inputValues[j]) max[j] = xf[i].inputValues[j];
-                    }
-                    else
-                    {
-                        if (i == 0)
-                            max[j] = xf[i].outputValues[j - xf[0].inputValues.Length];
-                        if (max[j] < xf[i].outputValues[j - xf[0].inputValues.Length]) max[j] = xf[i].outputValues[j - xf[0].inputValues.Length];
-                    }
-                }
-            return max;
-        }
     }
 }

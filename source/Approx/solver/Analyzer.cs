@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Project
+namespace Approx
 {
     public interface IAnalyzer
     {
@@ -49,22 +49,10 @@ namespace Project
 
         public double[][] Result { get { return xfcandidates; } }
 
-        public Analyzer(IFunction func, MeasuredPoint[] xf)
+        public Analyzer(IFunction func, double[][] xf)
         {
             this.func = func;
-            int arrLength = xf[0].inputValues.Length + xf[0].outputValues.Length;
-            this.xf = new double[xf.Length][];
-            for (int i = 0; i < xf.Length; i++)
-            {
-                this.xf[i] = new double[arrLength];
-                for (int j = 0; j < arrLength; j++)
-                {
-                    if (j < xf[0].inputValues.Length)
-                        this.xf[i][j] = xf[i].inputValues[j];
-                    else
-                        this.xf[i][j] = xf[i].outputValues[j - xf[0].inputValues.Length];
-                }
-            }
+            this.xf = xf;
 
             int[] count = new int[N];
             for (int i = 0; i < N; i++) count[i] = (Min[i] == Max[i]) ? 1 : NGRID;
@@ -313,7 +301,7 @@ namespace Project
             //Console.WriteLine("Partition of the space into domains");
             Queue<int> queue = new Queue<int>();
             domain = new int[grid.Node.Length];
-            double[] dist = new double[grid.Node.Length];
+            dist = new double[grid.Node.Length];
             for (int i = 0; i < domain.Length; i++)
             {
                 domain[i] = -1;
@@ -461,10 +449,10 @@ namespace Project
             Console.WriteLine("Calculation of local extrapolants");
             //вычисляю экстраполянты
             //Shepard[] sh = new Shepard[xf.Length];
-            MeasuredPoint[] xfMeasured = MeasuredPoint.getArrayFromDouble(xf, N);
+            //MeasuredPoint[] xfMeasured = MeasuredPoint.getArrayFromDouble(xf, N);
             ShepardApprox[] shepardApprox = new ShepardApprox[xf.Length];
             for (int i = 0; i < xf.Length; i++)
-                shepardApprox[i] = new ShepardApprox(N, xfMeasured, graph[i]);
+                shepardApprox[i] = new ShepardApprox(N, xf, graph[i]);
 
             Console.WriteLine("Approximation of the values of the initial function at the domain boundaries");
             //пересчитываю значения в узлах решетки только на границах доменов
@@ -534,10 +522,10 @@ namespace Project
         {
             //вычисляю экстраполянты
             //Shepard[] sh = new Shepard[xf.Length];
-            MeasuredPoint[] xfMeasured = MeasuredPoint.getArrayFromDouble(xf, N);
+            //MeasuredPoint[] xfMeasured = MeasuredPoint.getArrayFromDouble(xf, N);
             ShepardApprox[] shepardApprox = new ShepardApprox[xf.Length];
             for (int i = 0; i < xf.Length; i++)
-                shepardApprox[i] = new ShepardApprox(N, xfMeasured, graph[i]);
+                shepardApprox[i] = new ShepardApprox(N, xf, graph[i]);
 
             //пересчитываю значения в узлах решетки только на границах доменов
             for (int i = 0; i < grid.Node.Length; i++)
