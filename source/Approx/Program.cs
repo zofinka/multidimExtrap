@@ -19,19 +19,19 @@ namespace Approx
         const string LN_XY3 = "LnXY3";
         const string SQRT_X_SQRT_Y = "SqrtXSqrtY";
 
-        public static string configFile = @"d:\Study\Archive\project\config.cfg";
-        public static string pointFile = @"d:\Study\Archive\project\points.txt";
+        public static string configFile = @"d:\Study\Archive\project\config1.cfg";
+        public static string pointFile = @"d:\Study\Archive\project\points1.txt";
         public static string[] learnFunctions;
         public static string testFunction;
 
         static void Main(string[] args)
         {
-            learnFunctions = new string[] { SIN_X_COS_X_COS_Y };
-            testFunction = SIN_X_COS_X_COS_Y;
-            Console.WriteLine("Please write path to config file:");
-            configFile = Console.ReadLine();
-            Console.WriteLine("Please write path to points file:");
-            pointFile = Console.ReadLine();
+            learnFunctions = new string[] { LG_FUNC };
+            testFunction = LG_FUNC;
+            //Console.WriteLine("Please write path to config file:");
+            //configFile = Console.ReadLine();
+            //Console.WriteLine("Please write path to points file:");
+            //pointFile = Console.ReadLine();
             Console.WriteLine(testFunction + " Test START");
 
             IParser parser = new Parser();
@@ -39,13 +39,14 @@ namespace Approx
             Task task = parser.parseTask(pointFile, config);
             task.function = TestFunctionGetter.getInstance(testFunction).GetFunc();
 
-            foreach (string func in TestFunctionGetter.funcsWithTable.Keys)
+            foreach (string func in TestFunctionGetter.funcsWithTable)
             {
                 if (learnFunctions.Contains(func) || testFunction == func)
                 {
                     Console.WriteLine("Please write path to table file for function " + func);
                     string pathToTable = Console.ReadLine();
                     TestFunctionGetter.getInstance(func).SetTable(parser.parseTable(pathToTable, config));
+                    break;
                 }
             }
 

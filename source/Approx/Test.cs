@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -39,10 +40,15 @@ namespace Approx
             { "SqrtXSqrtY", SqrtXSqrtY.derivative }
         };
 
-        public static Dictionary<string, Dictionary<double[], double[]>> funcsWithTable = new
-            Dictionary<string, Dictionary<double[], double[]>>
+        //public static Dictionary<string, Dictionary<double[], double[]>> funcsWithTable = new
+        //    Dictionary<string, Dictionary<double[], double[]>>
+        //{
+        //    { "LGFunc", LGFunc.table }
+        //};
+
+        public static string[] funcsWithTable = new string[]
         {
-            { "LGFunc", LGFunc.table }
+            "LGFunc"
         };
 
         protected TestFunctionGetter(string testName)
@@ -76,7 +82,7 @@ namespace Approx
 
         public void SetTable(Dictionary<double[], double[]> table)
         {
-            funcsWithTable[testName] = table;
+            LGFunc.table = table;
         }
 
         private string testName;
