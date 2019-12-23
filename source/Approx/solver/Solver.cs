@@ -10,6 +10,7 @@ namespace Approx
     {
         void setConfig(IConfig config);
         void setCLassifier(Func<double[], double[]>[] functions, Task task);
+        void setRegressor(Func<double[], double[]>[] functions, Task task);
         double calculate(Task task);
         void testResult(Func<double[], double[]> func);
         void testResult(int nFunctionDimension, int mFunctionDimension, Func<double[], double[]> func);
@@ -40,6 +41,11 @@ namespace Approx
         public void setCLassifier(Func<double[], double[]>[] functions, Task task)
         {
             cls = get_cls(functions, task);
+        }
+
+        public void setRegressor(Func<double[], double[]>[] functions, Task task)
+        {
+            cls = get_rg(functions, task);
         }
 
         public double calculate(Task task)
