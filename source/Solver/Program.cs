@@ -17,19 +17,32 @@ namespace Solver
         {
 #region Test Whole Algorithm
             Console.OutputEncoding = Encoding.UTF8;
+
+            //string fileP = @"C:\Users\Sofya\multidimExtrap\source\test_data\11.SquaresProducts\sp_bad_points_rf.txt";
+            //Tests.SquaresProducts SquaresProducts = new Tests.SquaresProducts();
+            //Analyzer.analyze_accurasy(SquaresProducts, fileP, 10);
+            //string fileP = @"C:\Users\Sofya\multidimExtrap\source\test_data\12.sincos\sincos_rf_300.txt";
+            //Tests.SinXCosY SinCos = new Tests.SinXCosY();
+            //Analyzer.analyze_accurasy(SinCos, fileP, 10);
+            //string fileP = @"C:\Users\Sofya\multidimExtrap\source\test_data\20.LGFunc\lg_rf_1000_bad_points.txt";
+            //Tests.LGFunc LGFunc = new Tests.LGFunc();
+            //Analyzer.analyze_accurasy(LGFunc, fileP, 10);
             //Application.EnableVisualStyles();
             //Application.Run(new Class1()); // or whatever
             //#if ApproxTest
-            Test defTest = new TestDefWay();
-            defTest.run();
+            Test testOnGrid = new CalcOnGrid();
+            testOnGrid.run();
 
-            //Test randomForestTest;
+            Test defTest = new TestDefWay();
+            //defTest.run();
+
+            Test randomForestTest;
             //randomForestTest = new TestRandomForestBestAprxClass();
             //randomForestTest.run();
 
 
-            //randomForestTest = new TestRandomForestLearnAndDoOnOne();
-            //            randomForestTest.run();
+            randomForestTest = new TestRandomForestLearnAndDoOnOne();
+            //randomForestTest.run();
 
 
             //Test dichTest = new TestDichotomy();
@@ -81,7 +94,7 @@ namespace Solver
                new double[] { 2, 1, 2 },
                new double[] { 2, 2, 4 }
            };*/
-            //Shepard model = new Shepard(parser.FunctionDimension, parser.Points);
+            //Shepard model = new Shepard(parser.N_Dimension, parser.Points);
 
             //double[] x = new double[] { 0.5, 0.5, 0 };
             //model.Calculate(x);
@@ -101,7 +114,7 @@ namespace Solver
 
             Parser.keepSolution(args[2], new_points);*/
 
-             Console.ReadKey();
+            Console.ReadKey();
         }
     }
 }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Solver
 {
-    class TestDefWay: Test
+    class CalcOnGrid: Test
     {
         override public void run()
         {
@@ -32,16 +32,16 @@ namespace Solver
             //Console.WriteLine(TruncPyramid.name + " Test END in " + interAmount + " iterations");
 
             //126 interation
-            //Tests.SquaresProducts SquaresProducts = new Tests.SquaresProducts();
-            //Console.WriteLine("Test " + SquaresProducts.name + " START");
-            //interAmount = test(SquaresProducts.configFile, SquaresProducts.pointFile, SquaresProducts);
-            //Console.WriteLine("Test " + SquaresProducts.name + " END in " + interAmount + " iterations");
+            Tests.SquaresProducts SquaresProducts = new Tests.SquaresProducts();
+            Console.WriteLine("Test " + SquaresProducts.name + " START");
+            interAmount = test(SquaresProducts.configFile, SquaresProducts.pointFile, SquaresProducts);
+            Console.WriteLine("Test " + SquaresProducts.name + " END in " + interAmount + " iterations");
 
             // 212 iteration
-            Tests.SinXCosY SinXCosY = new Tests.SinXCosY();
-            Console.WriteLine("Test " + SinXCosY.name + " START");
-            interAmount = test(SinXCosY.configFile, SinXCosY.pointFile, SinXCosY);
-            Console.WriteLine("Test " + SinXCosY.name + " END in " + interAmount + " iterations");
+            //Tests.SinXCosY SinXCosY = new Tests.SinXCosY();
+            //Console.WriteLine("Test " + SinXCosY.name + " START");
+            //interAmount = test(SinXCosY.configFile, SinXCosY.pointFile, SinXCosY);
+            //Console.WriteLine("Test " + SinXCosY.name + " END in " + interAmount + " iterations");
 
             //133 iteration
             //Tests.SinXCosXCosY SinXCosXCosY = new Tests.SinXCosXCosY();
@@ -76,8 +76,6 @@ namespace Solver
                 function.table = parser.getTable();
             }
 
-
-
             Func<double[], double[]> func = function.func;
 
             int pointAmount = parser.PointAmount;
@@ -88,6 +86,14 @@ namespace Solver
 
             }
 
+            int ngrid = 9;
+            Shepard model = new Shepard(parser.N_Dimension, points);
+
+            //int[] count = new int[model.N]; for (int j = 0; j < model.N; j++) count[j] = (model.Min[j] == model.Max[j]) ? 1 : ngrid;
+            //Grid grid_big = new Grid(model.N, model.M, model.Min, model.Max, count);
+            points = new double[0][];
+            pointAmount = 0;
+
             int i = 0;
             double maxErr = 100000000;
             int totalPointsCount = 0;
@@ -95,23 +101,47 @@ namespace Solver
             //while (maxErr > parser.Approximation)
             double oldIntegAccuracy = 10000000;
             double IntegAccuracy = 10000000 - 100;
-            //while (IntegAccuracy < oldIntegAccuracy)
-            //while (IntegAccuracy > 0.0857362962721949 && IntegAccuracy < oldIntegAccuracy)
-            //while (totalPointsCount < 300)
             //while (maxErr > parser.Approximation)
-            //while (IntegAccuracy > parser.Approximation)
-            while (points.Length < 301)
-            {
-                Shepard model = new Shepard(parser.N_Dimension, points);
-                Analyzer analyzer = new Analyzer(model, points);
-                //analyzer.do_default_analyse();
-                //analyzer.do_best_ever_analyse();
-                analyzer.do_quicker_analyse(excludes);
-                double[][] xx = analyzer.Result;
 
-                int predictionPointAmount = Math.Min(parser.PredictionPointAmount, xx.Length);
+
+            //int ngrid_little =  System.Convert.ToInt32(ngrid * parser.Approximation);
+            int ngrid_little_x = 14;
+            int inc_parameter = 1;
+            int ngrid_little_y = 15;
+            //while (IntegAccuracy > parser.Approximation)
+            while (ngrid_little_x < 21)
+            {
+                points = new double[0][];
+                pointAmount = 0;
+                List<double[]> results = new List<double[]>();
+
+                int[] count = new int[model.N];
+                for (int j = 0; j < model.N; j++)
+                {
+                    if (j == 0)
+                    {
+                        count[j] = (model.Min[j] == model.Max[j]) ? 1 :  ngrid_little_x;
+                    }
+                    if (j == 1)
+                    {
+                        count[j] = (model.Min[j] == model.Max[j]) ? 1 : ngrid_little_y;
+                    }
+                }
+                Grid grid_little = new Grid(model.N, model.M, model.Min, model.Max, count);
+
+                for (int j = 0; j < grid_little.Node.Length; j+=1)
+                {
+                    results.Add(grid_little.Node[j]);
+                    //Console.WriteLine("{0} {1}", String.Join(" ", grid_little.Node[j]), String.Join(" ", function.func(grid_little.Node[j])));
+                    //Console.WriteLine("{0}", String.Join(" ", function.func(grid_little.Node[j])));
+
+                }
+
+                double[][] xx = results.ToArray();
+
+                int predictionPointAmount = xx.Length;
                 pointAmount = pointAmount + predictionPointAmount;
-                points = getNewPoints(points, analyzer.Result, predictionPointAmount, parser, func);
+                points = getNewPoints(points, results.ToArray(), predictionPointAmount, parser, func);
 
 
                 double[][] new_points = new double[predictionPointAmount][];
@@ -125,12 +155,12 @@ namespace Solver
                 //Нужно не максимальную ошибку считать, а среднюю.
                 double tempErr = 0;
                 double totalErr = 0.0;
-                
+
                 for (int k = 0; k < new_points.Length; k++)
                 {
                     var realPoint = points[pointAmount - predictionPointAmount + k];
                     double[] realFunctionVal = new double[parser.M_Dimension];
-                    
+
                     for (int l = 0; l < parser.M_Dimension; ++l)
                     {
                         realFunctionVal[l] = realPoint[parser.N_Dimension + l];
@@ -151,13 +181,13 @@ namespace Solver
                     //Console.WriteLine(" \n " + err + " " + String.Join(", ", realFunctionVal) + " " + String.Join(", ", approxFunctionVal) + " \n ");
                     if (err > tempErr)
                     {
-                       totalErr = err;
+                        totalErr = err;
                     }
                     // totalErr += err;
                     //Console.WriteLine("f({0}) real val {1} predict val {2} err {3}", String.Join(", ", xx[k]), String.Join(", ", realFunctionVal), String.Join(", ", approxFunctionVal), err);
                     //Console.WriteLine("{0};{1};{2};{3}", String.Join(", ", xx[k]), String.Join(", ", realFunctionVal));
+                    //Console.WriteLine("{0};{1}", String.Join(";", xx[k]), String.Join(";", realFunctionVal));
 
-                    Console.WriteLine("{0};{1}", String.Join(";", xx[k]), String.Join(";", realFunctionVal));
                 }
                 maxErr = totalErr;
                 //maxErr = totalErr / new_points.Length;
@@ -165,18 +195,20 @@ namespace Solver
                 totalPointsCount = points.Length;
                 oldIntegAccuracy = IntegAccuracy;
                 IntegAccuracy = calc_err(func, points.ToList(), parser);
-                //Console.WriteLine("Accuracy {0}", IntegAccuracy);
+                Console.WriteLine("Accuracy {0}", IntegAccuracy);
+                Console.WriteLine("ngrid little count {0}", ngrid_little_x * ngrid_little_y);
+                ngrid_little_x += inc_parameter;
+                
             }
 
             testResult(parser.N_Dimension, parser.M_Dimension, points, func);
             Console.WriteLine("Calc err avg " + calc_err(func, points.ToList(), parser));
             Console.WriteLine("{0} points was requested from the real function", totalPointsCount);
 
-            Console.WriteLine("Points amount in grid {0}", Analyzer.gridPointsAmount(parser));
+            Console.WriteLine("Points amount in grid {0}", ngrid - 1);
+            Console.WriteLine("Ngrid count needed {0}", (ngrid_little_x - inc_parameter) * ngrid_little_y);
 
             return i;
         }
-
-
     }
 }

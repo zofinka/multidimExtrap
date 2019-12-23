@@ -7,7 +7,7 @@ using System.IO;
 
 namespace Solver
 {
-    class Parser
+    public class Parser
     {
         /// <summary>
         /// количество точек которые было расчитано ранее и подается на вход
@@ -20,7 +20,15 @@ namespace Solver
         /// <summary>
         /// N - размерность функции
         /// </summary>
-        public int FunctionDimension { get; protected set; }
+        public int N_Dimension { get; protected set; }
+        /// <summary>
+        /// M - количество выходных значений
+        /// </summary>
+        public int M_Dimension { get; protected set; }
+        /// <summary>
+        /// NM - количество входных + выходных значений
+        /// </summary>
+        public int NM_Dimension { get; protected set; }
         /// <summary>
         /// количество точек которое мы готовы получить на выходе, чтобы рачитать в них точные значения
         /// </summary>
@@ -47,6 +55,12 @@ namespace Solver
         /// </summary>
         private string fileWithPoints;
         /// <summary>
+        /// Путь до файла со всеми значениями функции на определенной таблице
+        /// области определения
+        /// формат точки: x1, x2, .. xn, y
+        /// </summary>
+        private string tableFile;
+        /// <summary>
         /// N-мерный вектор минимальных значений входных парамеров 
         /// </summary>
         public double[] Min { get; protected set; }
@@ -59,23 +73,29 @@ namespace Solver
         {
             PointAmount = -1;
             Approximation = -1;
-            FunctionDimension = -1;
+            N_Dimension = -1;
+            M_Dimension = -1;
+            NM_Dimension = -1;
             PredictionPointAmount = -1;
             Points = new double[0][];
             configFile = "";
             fileWithPoints = "";
+            tableFile = "";
             Min = new double[0];
             Max = new double[0];
             doParse();
         }
 
-        public Parser(string configFile, string fileWithPoint)
+        public Parser(string configFile, string fileWithPoint, string tableFile = null)
         {
             this.configFile = configFile;
             this.fileWithPoints = fileWithPoint;
+            this.tableFile = tableFile;
             PointAmount = -1;
             Approximation = -1;
-            FunctionDimension = -1;
+            N_Dimension = -1;
+            M_Dimension = -1;
+            NM_Dimension = -1;
             PredictionPointAmount = -1;
             Points = new double[0][];
             Min = new double[0];
@@ -118,19 +138,24 @@ namespace Solver
 
             using (StreamReader fs = new StreamReader(this.configFile))
             {
-                FunctionDimension = Int32.Parse(fs.ReadLine());
+                string dims = fs.ReadLine();
+                string[] dimsItems = dims.Split(' ');
+                N_Dimension = Int32.Parse(dimsItems[0]);
+                M_Dimension = Int32.Parse(dimsItems[1]);
+                NM_Dimension = N_Dimension + M_Dimension;
+
                 PointAmount = Int32.Parse(fs.ReadLine());
                 PredictionPointAmount = Int32.Parse(fs.ReadLine());
                 Approximation = float.Parse(fs.ReadLine());
                 string temp = fs.ReadLine();
                 string[] strItems = temp.Split(' ');
-                Min = new double[FunctionDimension];
-                if (strItems.Length != FunctionDimension)
+                Min = new double[N_Dimension];
+                if (strItems.Length != N_Dimension)
                 {
-                    Console.WriteLine("The min vector " + temp + " length is not equel function demention " + FunctionDimension);
+                    Console.WriteLine("The min vector " + temp + " length is not equel function demention " + N_Dimension);
                 } else
                 {
-                    for (int j = 0; j < FunctionDimension; j++)
+                    for (int j = 0; j < N_Dimension; j++)
                     {
                         Min[j] = double.Parse(strItems[j]);
                     }
@@ -138,14 +163,14 @@ namespace Solver
 
                 temp = fs.ReadLine();
                 strItems = temp.Split(' ');
-                Max = new double[FunctionDimension];
-                if (strItems.Length != FunctionDimension)
+                Max = new double[N_Dimension];
+                if (strItems.Length != N_Dimension)
                 {
-                    Console.WriteLine("The max vector " + temp + " length is not equel function demention " + FunctionDimension);
+                    Console.WriteLine("The max vector " + temp + " length is not equel function demention " + N_Dimension);
                 }
                 else
                 {
-                    for (int j = 0; j < FunctionDimension; j++)
+                    for (int j = 0; j < N_Dimension; j++)
                     {
                         Max[j] = double.Parse(strItems[j]);
                     }
@@ -164,20 +189,91 @@ namespace Solver
                     {
                         break;
                     }
-                    Points[i] = new double[FunctionDimension + 1];
+                    Points[i] = new double[N_Dimension + M_Dimension];
                     string[] strItems = temp.Split(' ');
-                    if (strItems.Length != FunctionDimension + 1)
+                    if (strItems.Length != NM_Dimension)
                     {
-                        Console.WriteLine("The vector " + temp + " length is not equel function demention " + FunctionDimension);
+                        Console.WriteLine("The vector " + temp + " length is not equel function demention " + N_Dimension);
                         continue;
                     }
-                    for (int j = 0; j < FunctionDimension + 1; j++)
+                    for (int j = 0; j < N_Dimension + M_Dimension; j++)
                     {
                         Points[i][j] = double.Parse(strItems[j]);
                     }
                 }
             }
+
+            if (tableFile != null)
+            {
+                using (StreamReader fs = new StreamReader(tableFile))
+                {
+                    string temp = "";
+                    table = new Dictionary<double[], double[]>();
+
+                    temp = fs.ReadLine();
+                    while (temp != null)
+                    {
+                        var point = new double[N_Dimension];
+                        var responce = new double[M_Dimension];
+
+                        string[] strItems = temp.Split(';');
+
+                        if (strItems.Length != NM_Dimension)
+                        {
+                            Console.WriteLine("The vector " + temp + " length is not equel function demention " + NM_Dimension);
+                            continue;
+                        }
+                        for (int j = 0; j < N_Dimension; j++)
+                        {
+                            point[j] = double.Parse(strItems[j]);
+                        }
+                        for (int j = 0; j < M_Dimension; j++)
+                        {
+                            responce[j] = double.Parse(strItems[N_Dimension + j]);
+                        }
+                        table.Add(point, responce);
+
+                        temp = fs.ReadLine();
+                    }
+                }
+            }
             return 0;
+        }
+
+
+        public List<double[]> get_points(string pointFile, int demention)
+        {
+            List<double[]> points = new List<double[]>();
+            
+            using (StreamReader fs = new StreamReader(pointFile))
+            {
+                string temp = "";
+                table = new Dictionary<double[], double[]>();
+
+                temp = fs.ReadLine();
+                while (temp != null)
+                {
+                    var point = new double[demention];
+
+                    string[] strItems = temp.Split(';');
+                    for (int j = 0; j < demention; j++)
+                    {
+                        point[j] = double.Parse(strItems[j]);
+                    }
+                    
+                    points.Add(point);
+
+                    temp = fs.ReadLine();
+                }
+            }
+            
+            return points;
+        }
+
+
+        public Dictionary<double[], double[]> getTable()
+        {
+            return table;
         }
 
         public static void keepSolution(string outputFile, double[][] points)
@@ -192,5 +288,7 @@ namespace Solver
                 }
             }
         }
+
+        private Dictionary<double[], double[]> table = null;
     }
 }
