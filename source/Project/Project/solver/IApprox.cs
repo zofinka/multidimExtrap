@@ -27,7 +27,7 @@ namespace Project
             this.z = null;
             this.xy = null;
             if (n < 1) return;
-            if (n < 2) { xy = (MeasuredPoint)xf.Clone(); return; }
+            if (n < 2) { xy = (MeasuredPoint)xf[0].Clone(); return; }
             this.z = new alglib.idwint.idwinterpolant[M];
             for (int m = 0; m < M; m++)
             {
@@ -77,10 +77,10 @@ namespace Project
             double result = 0;
             for (int i = 0; i < M; i++)
             {
-                double diff = Math.Abs(oldPoint[i] - newPoint[i]);
-                result += diff;
+                double[] diffs = oldPoint.Zip(newPoint, (d1, d2) => Math.Abs(d1 - d2)).ToArray();
+                double err = (diffs.Sum() / diffs.Length);
+                result += err;
             }
-            result = result / M;
             return result;
         }
     }

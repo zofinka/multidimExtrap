@@ -9,7 +9,7 @@ namespace Project
     public struct LabeledData
     {
         public double[] data; // add generic type instead of double.
-        public int label;
+        public Object label;
 
         public LabeledData(double[] data, int label)
         {
@@ -17,21 +17,22 @@ namespace Project
             this.label = label;
         }
     }
-    public abstract class AClassifierParams
+
+    public abstract class AMLAlgorithmParams
     {
         // Training set
         public LabeledData[] XY { get; set; }
 
-        public AClassifierParams(LabeledData[] xy)
+        public AMLAlgorithmParams(LabeledData[] xy)
         {
             XY = xy;
         }
     }
 
-    public interface IClassifier
+    public interface IClassifierML
     {
-        void train(AClassifierParams param);
-        void infer(double[] x, out int label);
-        void validate(LabeledData[] XY, out double modelPrecision);
+        void train<T>(AMLAlgorithmParams param);
+        void infer(double[] x, out Object label);
+        void validate<T>(LabeledData[] XY, out double modelPrecision) where T : IComparable;
     }
 }

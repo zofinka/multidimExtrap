@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 
 namespace Project
 {
-    public class TestGetter
+    public class TestFunctionGetter
     {
-        private static TestGetter instance;
+        private static TestFunctionGetter instance;
         private static bool IsInstanceCreated = false;
+        
         private static Dictionary<string, Func<double[], double[]>> functions = new Dictionary<string, Func<double[], double[]>>()
         {
             { "PyramidVolume", PyramidVolume.func },
@@ -18,7 +19,10 @@ namespace Project
             { "SinXCosY", SinXCosY.func },
             { "SquareArea", SquareArea.func },
             { "SquaresProducts", SquaresProducts.func },
-            { "TruncPyramid", TruncPyramid.func }
+            { "TruncPyramid", TruncPyramid.func },
+            { "LGFunc", LGFunc.func },
+            { "LnXY3", LnXY3.func },
+            { "SqrtXSqrtY", SqrtXSqrtY.func }
         };
 
         private static Dictionary<string, Func<double[], double[]>> derivatives = new Dictionary<string, Func<double[], double[]>>()
@@ -29,24 +33,34 @@ namespace Project
             { "SinXCosY", SinXCosY.derivative },
             { "SquareArea", SquareArea.derivative },
             { "SquaresProducts", SquaresProducts.derivative },
-            { "TruncPyramid", TruncPyramid.derivative }
+            { "TruncPyramid", TruncPyramid.derivative },
+            { "LGFunc", LGFunc.derivative },
+            { "LnXY3", LnXY3.derivative },
+            { "SqrtXSqrtY", SqrtXSqrtY.derivative }
         };
 
-        protected TestGetter(string testName)
+        public static Dictionary<string, Dictionary<double[], double[]>> funcsWithTable = new
+            Dictionary<string, Dictionary<double[], double[]>>
+        {
+            { "LGFunc", LGFunc.table }
+        };
+
+        protected TestFunctionGetter(string testName)
         {
             if (IsInstanceCreated)
             {
-                throw new InvalidOperationException("Constructing a TestGetter" +
+                throw new InvalidOperationException("Constructing a TestFunctionGetter" +
                     " manually is not allowed, use the Instance property.");
             }
             else
                 this.testName = testName;
         }
 
-        public static TestGetter getInstance(string testName)
+        public static TestFunctionGetter getInstance(string testName)
         {
             if (instance == null)
-                instance = new TestGetter(testName);
+                instance = new TestFunctionGetter(testName);
+            instance.testName = testName;
             return instance;
         }
 
@@ -58,6 +72,11 @@ namespace Project
         public Func<double[], double[]> GetDerivative()
         {
             return derivatives[testName];
+        }
+
+        public void SetTable(Dictionary<double[], double[]> table)
+        {
+            funcsWithTable[testName] = table;
         }
 
         private string testName;
@@ -223,6 +242,67 @@ namespace Project
             double v = b / 3;
             double[] result = { points[2] * (points[0] + points[1] + Math.Sqrt(points[0] * points[1])) / 3 };
             return result;
+        }
+    }
+
+    public static class LGFunc
+    {
+        public static Dictionary<double[], double[]> table = null;
+        public static double[] func(double[] points)
+        {
+            if (table == null)
+            {
+                throw new System.Exception("this func requires a table!");
+            }
+
+            var reqPoint = new double[] { points[0] };
+            var knownPoints = table.Keys;
+
+            double[] candidate = null;
+            double minDiff = 0.1;
+            foreach (var kPoint in knownPoints)
+            {
+                var diff = kPoint.Zip(reqPoint, (d1, d2) => Math.Abs(d1 - d2)).ToArray()[0];
+                if (diff < minDiff)
+                {
+                    minDiff = diff;
+                    candidate = kPoint;
+                }
+            }
+
+            return candidate == null ? null : table[candidate];
+        }
+
+        public static double[] derivative(double[] points)
+        {
+            throw new NotImplementedException("LGFunc derivative is not implemented," +
+                                              "as LGFunc is dicrete function.");
+        }
+    }
+
+    public static class LnXY3
+    {
+        public static double[] func(double[] points)
+        {
+            return new double[1] { Math.Log10(points[0]) * Math.Pow(points[1], 3) };
+        }
+
+        public static double[] derivative(double[] points)
+        {
+            return new double[2] { 0, 0 };
+        }
+    }
+
+    public static class SqrtXSqrtY
+    {
+        public static double[] func(double[] points)
+        {
+            return new double[1] { Math.Sqrt(points[0]) * Math.Sqrt(points[1]) };
+        }
+
+        public static double[] derivative(double[] points)
+        {
+            return new double[2] { 0, 0 };
         }
     }
 }

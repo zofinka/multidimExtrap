@@ -11,6 +11,7 @@ namespace Project
     {
         Task parseTask(string pathToTask, IConfig config);
         IConfig parseConfig(string pathToConfig);
+        Dictionary<double[], double[]> parseTable(string pathToTable, IConfig config);
     }
 
     public class Parser : IParser
@@ -118,6 +119,54 @@ namespace Project
                 }
             }
             return config;
+        }
+
+        public Dictionary<double[], double[]> parseTable(string pathToTable, IConfig config)
+        {
+            Dictionary<double[], double[]> table = null;
+            if (pathToTable.Length == 0)
+            {
+                Console.WriteLine("Please, set table file path.");
+                return null;
+            }
+            if (!File.Exists(pathToTable))
+            {
+                Console.WriteLine("The table file is not exists: " + pathToTable);
+                return null;
+            }
+
+            using (StreamReader fs = new StreamReader(pathToTable))
+            {
+                string temp = "";
+                table = new Dictionary<double[], double[]>();
+
+                temp = fs.ReadLine();
+                while (temp != null)
+                {
+                    var point = new double[config.FunctionDimension];
+                    var responce = new double[config.DependentVariablesNum];
+
+                    string[] strItems = temp.Split(';');
+
+                    if (strItems.Length != config.FunctionDimension + config.DependentVariablesNum)
+                    {
+                        Console.WriteLine("The vector " + temp + " length is not equel function demention " + config.FunctionDimension);
+                        continue;
+                    }
+                    for (int j = 0; j < config.FunctionDimension; j++)
+                    {
+                        point[j] = double.Parse(strItems[j]);
+                    }
+                    for (int j = 0; j < config.DependentVariablesNum; j++)
+                    {
+                        responce[j] = double.Parse(strItems[config.FunctionDimension + j]);
+                    }
+                    table.Add(point, responce);
+
+                    temp = fs.ReadLine();
+                }
+            }
+            return table;
         }
     }
 }

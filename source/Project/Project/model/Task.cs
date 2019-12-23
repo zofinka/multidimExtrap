@@ -21,5 +21,25 @@ namespace Project
         {
             originPoints = new MeasuredPoint[pointAmount];
         }
+
+        public static double[][] getArray(MeasuredPoint[] measuredPoints)
+        {
+            double[][] result = new double[measuredPoints.Length][];
+            int N = measuredPoints[0].inputValues.Length;
+            int M = measuredPoints[0].outputValues.Length;
+            int NM = N + M;
+            for (int i = 0; i < measuredPoints.Length; i++)
+            {
+                result[i] = new double[NM];
+                for (int j = 0; j < NM; j++)
+                {
+                    if (j < N)
+                        result[i][j] = measuredPoints[i].inputValues[j];
+                    else
+                        result[i][j] = measuredPoints[i].outputValues[j - N];
+                }
+            }
+            return result;
+        }
     }
 }
